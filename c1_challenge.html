@@ -1,0 +1,7214 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Nishit Patel" />
+
+
+<title>AirBnB &amp; Zillow Data Challenge</title>
+
+<script src="c1_challenge_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="c1_challenge_files/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="c1_challenge_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="c1_challenge_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="c1_challenge_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="c1_challenge_files/navigation-1.1/tabsets.js"></script>
+<link href="c1_challenge_files/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="c1_challenge_files/highlightjs-9.12.0/highlight.js"></script>
+<script src="c1_challenge_files/kePrint-0.0.1/kePrint.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">AirBnB &amp; Zillow Data Challenge</h1>
+<h4 class="author"><em>Nishit Patel</em></h4>
+<h4 class="date"><em>February 9, 2019</em></h4>
+
+</div>
+
+<div id="TOC">
+<ul>
+<li><a href="#overview-and-problem-statement">Overview and Problem Statement</a></li>
+<li><a href="#exercise-assumptions">Exercise Assumptions</a></li>
+<li><a href="#methods">Methods</a><ul>
+<li><a href="#dataset-description">Dataset Description</a></li>
+<li><a href="#libraries-and-packages">Libraries and Packages</a></li>
+<li><a href="#data-loading">Data Loading</a></li>
+<li><a href="#data-cleaning">Data Cleaning</a></li>
+<li><a href="#feature-engineering">Feature Engineering</a></li>
+<li><a href="#exploratory-data-analysis">Exploratory Data Analysis</a></li>
+</ul></li>
+<li><a href="#final-analysis-highlights">Final Analysis highlights</a></li>
+<li><a href="#conclusion-and-discussions">Conclusion and Discussions</a></li>
+<li><a href="#recommandations">Recommandations</a></li>
+<li><a href="#future-actions">Future Actions</a></li>
+<li><a href="#acknowledgements">Acknowledgements</a></li>
+</ul>
+</div>
+
+<div id="overview-and-problem-statement" class="section level2">
+<h2>Overview and Problem Statement</h2>
+<ul>
+<li><p>You are consulting for a real estate company that has a niche in purchasing properties to rent out short-term as part of their business model specifically within New York City. The real estate company has already concluded that two bedroom properties are the most profitable; however, they do not know which zip codes are the best to invest in.</p></li>
+<li><p>The real estate company has engaged your firm to build out a data product and provide your conclusions to help them understand which zip codes would generate the most profit on short term rentals within New York City.</p></li>
+</ul>
+</div>
+<div id="exercise-assumptions" class="section level2">
+<h2>Exercise Assumptions</h2>
+<ul>
+<li>The dataset for this exercise are available through <code>AirBnB</code> (Revenue related data) and <code>Zillow</code> (Cost related data).</li>
+<li>The Occupancy rate is constant and assumed of 75% therefore we are not considering effects of seasonality and trend.</li>
+<li>The investor will pay for the property in cash (i.e. no mortgage/interest rate will need to be accounted for).</li>
+<li>The time value of money discount rate is 0% (i.e. $1 today is worth the same 100 years from now).</li>
+<li>All properties and all square feet within each locale can be assumed to be homogeneous (i.e. a 1000 square foot property in a locale such as Bronx or Manhattan generates twice the revenue and costs twice as much as any other 500 square foot property within that same locale.)</li>
+</ul>
+</div>
+<div id="methods" class="section level2">
+<h2>Methods</h2>
+<div id="dataset-description" class="section level3">
+<h3>Dataset Description</h3>
+<ul>
+<li>Zillow Median Home Value Dataset: This datset contains information on median home price on different cities in the nation. It includes columns such as RegionID, Zipcode, City, State, County Name, Area population rank and median price in time series format starting from April 1996 to June 2017 where columsn are the time period and values the median price of the home. The datset size is 13.5MB and contains <strong>8,946</strong> observations and <strong>262</strong> variables.</li>
+<li>AirBnB Detailed Listing Dataset: This dataset contains information related to property within New York City area. There are many features related to each property such as property type, zipcode, transit options etc. The dataset size is 147MB (unzipped)and contains <strong>40,753</strong> observations and <strong>95</strong> variables.</li>
+</ul>
+</div>
+<div id="libraries-and-packages" class="section level3">
+<h3>Libraries and Packages</h3>
+<p>Below packages were used in this analysis:</p>
+<ul>
+<li><strong>dplyr</strong>: Data manipulation and wrangling</li>
+<li><strong>data.table</strong>: Data reading and manipulations</li>
+<li><strong>ggplot2</strong>: Visualization and plots</li>
+<li><strong>ggpubr</strong> - Visulization and plots</li>
+<li><strong>kableExtra</strong> - Table Styling</li>
+</ul>
+<pre class="r"><code>#load necessary pckages
+mypackages &lt;- c(&quot;dplyr&quot;,&quot;data.table&quot;,&quot;ggplot2&quot;,&quot;ggpubr&quot;,&quot;kableExtra&quot;)   
+pkg &lt;- setdiff(mypackages, rownames(installed.packages())) 
+if (length(pkg) &gt; 0) install.packages(pkg)
+
+library(dplyr)
+library(data.table)
+library(ggplot2)
+library(ggpubr)
+library(kableExtra)</code></pre>
+</div>
+<div id="data-loading" class="section level3">
+<h3>Data Loading</h3>
+<ul>
+<li>Lets first import and take a peak with few rows from both datasets.</li>
+</ul>
+<pre class="r"><code>#disable scientic notations for plots
+options(scipen=10000)
+
+#read data 
+zillow_dt &lt;- fread(&quot;Zip_Zhvi_2bedroom.csv&quot;)
+airbnb_dt &lt;- fread(&quot;listings.csv&quot;)
+
+#check dataset dimensions
+dim(zillow_dt)</code></pre>
+<pre><code>## [1] 8946  262</code></pre>
+<pre class="r"><code>dim(airbnb_dt)</code></pre>
+<pre><code>## [1] 40753    95</code></pre>
+<pre class="r"><code>#print dataset sample rows 
+kable(zillow_dt[1:5,],format = &#39;html&#39;,col.names = colnames(zillow_dt),caption = &quot;Zillow (Cost) dataset&quot;) %&gt;%
+  kable_styling(bootstrap_options = &quot;striped&quot;) %&gt;%
+  scroll_box(width=&quot;100%&quot;)</code></pre>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+<caption>
+Zillow (Cost) dataset
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+RegionID
+</th>
+<th style="text-align:right;">
+RegionName
+</th>
+<th style="text-align:left;">
+City
+</th>
+<th style="text-align:left;">
+State
+</th>
+<th style="text-align:left;">
+Metro
+</th>
+<th style="text-align:left;">
+CountyName
+</th>
+<th style="text-align:right;">
+SizeRank
+</th>
+<th style="text-align:right;">
+1996-04
+</th>
+<th style="text-align:right;">
+1996-05
+</th>
+<th style="text-align:right;">
+1996-06
+</th>
+<th style="text-align:right;">
+1996-07
+</th>
+<th style="text-align:right;">
+1996-08
+</th>
+<th style="text-align:right;">
+1996-09
+</th>
+<th style="text-align:right;">
+1996-10
+</th>
+<th style="text-align:right;">
+1996-11
+</th>
+<th style="text-align:right;">
+1996-12
+</th>
+<th style="text-align:right;">
+1997-01
+</th>
+<th style="text-align:right;">
+1997-02
+</th>
+<th style="text-align:right;">
+1997-03
+</th>
+<th style="text-align:right;">
+1997-04
+</th>
+<th style="text-align:right;">
+1997-05
+</th>
+<th style="text-align:right;">
+1997-06
+</th>
+<th style="text-align:right;">
+1997-07
+</th>
+<th style="text-align:right;">
+1997-08
+</th>
+<th style="text-align:right;">
+1997-09
+</th>
+<th style="text-align:right;">
+1997-10
+</th>
+<th style="text-align:right;">
+1997-11
+</th>
+<th style="text-align:right;">
+1997-12
+</th>
+<th style="text-align:right;">
+1998-01
+</th>
+<th style="text-align:right;">
+1998-02
+</th>
+<th style="text-align:right;">
+1998-03
+</th>
+<th style="text-align:right;">
+1998-04
+</th>
+<th style="text-align:right;">
+1998-05
+</th>
+<th style="text-align:right;">
+1998-06
+</th>
+<th style="text-align:right;">
+1998-07
+</th>
+<th style="text-align:right;">
+1998-08
+</th>
+<th style="text-align:right;">
+1998-09
+</th>
+<th style="text-align:right;">
+1998-10
+</th>
+<th style="text-align:right;">
+1998-11
+</th>
+<th style="text-align:right;">
+1998-12
+</th>
+<th style="text-align:right;">
+1999-01
+</th>
+<th style="text-align:right;">
+1999-02
+</th>
+<th style="text-align:right;">
+1999-03
+</th>
+<th style="text-align:right;">
+1999-04
+</th>
+<th style="text-align:right;">
+1999-05
+</th>
+<th style="text-align:right;">
+1999-06
+</th>
+<th style="text-align:right;">
+1999-07
+</th>
+<th style="text-align:right;">
+1999-08
+</th>
+<th style="text-align:right;">
+1999-09
+</th>
+<th style="text-align:right;">
+1999-10
+</th>
+<th style="text-align:right;">
+1999-11
+</th>
+<th style="text-align:right;">
+1999-12
+</th>
+<th style="text-align:right;">
+2000-01
+</th>
+<th style="text-align:right;">
+2000-02
+</th>
+<th style="text-align:right;">
+2000-03
+</th>
+<th style="text-align:right;">
+2000-04
+</th>
+<th style="text-align:right;">
+2000-05
+</th>
+<th style="text-align:right;">
+2000-06
+</th>
+<th style="text-align:right;">
+2000-07
+</th>
+<th style="text-align:right;">
+2000-08
+</th>
+<th style="text-align:right;">
+2000-09
+</th>
+<th style="text-align:right;">
+2000-10
+</th>
+<th style="text-align:right;">
+2000-11
+</th>
+<th style="text-align:right;">
+2000-12
+</th>
+<th style="text-align:right;">
+2001-01
+</th>
+<th style="text-align:right;">
+2001-02
+</th>
+<th style="text-align:right;">
+2001-03
+</th>
+<th style="text-align:right;">
+2001-04
+</th>
+<th style="text-align:right;">
+2001-05
+</th>
+<th style="text-align:right;">
+2001-06
+</th>
+<th style="text-align:right;">
+2001-07
+</th>
+<th style="text-align:right;">
+2001-08
+</th>
+<th style="text-align:right;">
+2001-09
+</th>
+<th style="text-align:right;">
+2001-10
+</th>
+<th style="text-align:right;">
+2001-11
+</th>
+<th style="text-align:right;">
+2001-12
+</th>
+<th style="text-align:right;">
+2002-01
+</th>
+<th style="text-align:right;">
+2002-02
+</th>
+<th style="text-align:right;">
+2002-03
+</th>
+<th style="text-align:right;">
+2002-04
+</th>
+<th style="text-align:right;">
+2002-05
+</th>
+<th style="text-align:right;">
+2002-06
+</th>
+<th style="text-align:right;">
+2002-07
+</th>
+<th style="text-align:right;">
+2002-08
+</th>
+<th style="text-align:right;">
+2002-09
+</th>
+<th style="text-align:right;">
+2002-10
+</th>
+<th style="text-align:right;">
+2002-11
+</th>
+<th style="text-align:right;">
+2002-12
+</th>
+<th style="text-align:right;">
+2003-01
+</th>
+<th style="text-align:right;">
+2003-02
+</th>
+<th style="text-align:right;">
+2003-03
+</th>
+<th style="text-align:right;">
+2003-04
+</th>
+<th style="text-align:right;">
+2003-05
+</th>
+<th style="text-align:right;">
+2003-06
+</th>
+<th style="text-align:right;">
+2003-07
+</th>
+<th style="text-align:right;">
+2003-08
+</th>
+<th style="text-align:right;">
+2003-09
+</th>
+<th style="text-align:right;">
+2003-10
+</th>
+<th style="text-align:right;">
+2003-11
+</th>
+<th style="text-align:right;">
+2003-12
+</th>
+<th style="text-align:right;">
+2004-01
+</th>
+<th style="text-align:right;">
+2004-02
+</th>
+<th style="text-align:right;">
+2004-03
+</th>
+<th style="text-align:right;">
+2004-04
+</th>
+<th style="text-align:right;">
+2004-05
+</th>
+<th style="text-align:right;">
+2004-06
+</th>
+<th style="text-align:right;">
+2004-07
+</th>
+<th style="text-align:right;">
+2004-08
+</th>
+<th style="text-align:right;">
+2004-09
+</th>
+<th style="text-align:right;">
+2004-10
+</th>
+<th style="text-align:right;">
+2004-11
+</th>
+<th style="text-align:right;">
+2004-12
+</th>
+<th style="text-align:right;">
+2005-01
+</th>
+<th style="text-align:right;">
+2005-02
+</th>
+<th style="text-align:right;">
+2005-03
+</th>
+<th style="text-align:right;">
+2005-04
+</th>
+<th style="text-align:right;">
+2005-05
+</th>
+<th style="text-align:right;">
+2005-06
+</th>
+<th style="text-align:right;">
+2005-07
+</th>
+<th style="text-align:right;">
+2005-08
+</th>
+<th style="text-align:right;">
+2005-09
+</th>
+<th style="text-align:right;">
+2005-10
+</th>
+<th style="text-align:right;">
+2005-11
+</th>
+<th style="text-align:right;">
+2005-12
+</th>
+<th style="text-align:right;">
+2006-01
+</th>
+<th style="text-align:right;">
+2006-02
+</th>
+<th style="text-align:right;">
+2006-03
+</th>
+<th style="text-align:right;">
+2006-04
+</th>
+<th style="text-align:right;">
+2006-05
+</th>
+<th style="text-align:right;">
+2006-06
+</th>
+<th style="text-align:right;">
+2006-07
+</th>
+<th style="text-align:right;">
+2006-08
+</th>
+<th style="text-align:right;">
+2006-09
+</th>
+<th style="text-align:right;">
+2006-10
+</th>
+<th style="text-align:right;">
+2006-11
+</th>
+<th style="text-align:right;">
+2006-12
+</th>
+<th style="text-align:right;">
+2007-01
+</th>
+<th style="text-align:right;">
+2007-02
+</th>
+<th style="text-align:right;">
+2007-03
+</th>
+<th style="text-align:right;">
+2007-04
+</th>
+<th style="text-align:right;">
+2007-05
+</th>
+<th style="text-align:right;">
+2007-06
+</th>
+<th style="text-align:right;">
+2007-07
+</th>
+<th style="text-align:right;">
+2007-08
+</th>
+<th style="text-align:right;">
+2007-09
+</th>
+<th style="text-align:right;">
+2007-10
+</th>
+<th style="text-align:right;">
+2007-11
+</th>
+<th style="text-align:right;">
+2007-12
+</th>
+<th style="text-align:right;">
+2008-01
+</th>
+<th style="text-align:right;">
+2008-02
+</th>
+<th style="text-align:right;">
+2008-03
+</th>
+<th style="text-align:right;">
+2008-04
+</th>
+<th style="text-align:right;">
+2008-05
+</th>
+<th style="text-align:right;">
+2008-06
+</th>
+<th style="text-align:right;">
+2008-07
+</th>
+<th style="text-align:right;">
+2008-08
+</th>
+<th style="text-align:right;">
+2008-09
+</th>
+<th style="text-align:right;">
+2008-10
+</th>
+<th style="text-align:right;">
+2008-11
+</th>
+<th style="text-align:right;">
+2008-12
+</th>
+<th style="text-align:right;">
+2009-01
+</th>
+<th style="text-align:right;">
+2009-02
+</th>
+<th style="text-align:right;">
+2009-03
+</th>
+<th style="text-align:right;">
+2009-04
+</th>
+<th style="text-align:right;">
+2009-05
+</th>
+<th style="text-align:right;">
+2009-06
+</th>
+<th style="text-align:right;">
+2009-07
+</th>
+<th style="text-align:right;">
+2009-08
+</th>
+<th style="text-align:right;">
+2009-09
+</th>
+<th style="text-align:right;">
+2009-10
+</th>
+<th style="text-align:right;">
+2009-11
+</th>
+<th style="text-align:right;">
+2009-12
+</th>
+<th style="text-align:right;">
+2010-01
+</th>
+<th style="text-align:right;">
+2010-02
+</th>
+<th style="text-align:right;">
+2010-03
+</th>
+<th style="text-align:right;">
+2010-04
+</th>
+<th style="text-align:right;">
+2010-05
+</th>
+<th style="text-align:right;">
+2010-06
+</th>
+<th style="text-align:right;">
+2010-07
+</th>
+<th style="text-align:right;">
+2010-08
+</th>
+<th style="text-align:right;">
+2010-09
+</th>
+<th style="text-align:right;">
+2010-10
+</th>
+<th style="text-align:right;">
+2010-11
+</th>
+<th style="text-align:right;">
+2010-12
+</th>
+<th style="text-align:right;">
+2011-01
+</th>
+<th style="text-align:right;">
+2011-02
+</th>
+<th style="text-align:right;">
+2011-03
+</th>
+<th style="text-align:right;">
+2011-04
+</th>
+<th style="text-align:right;">
+2011-05
+</th>
+<th style="text-align:right;">
+2011-06
+</th>
+<th style="text-align:right;">
+2011-07
+</th>
+<th style="text-align:right;">
+2011-08
+</th>
+<th style="text-align:right;">
+2011-09
+</th>
+<th style="text-align:right;">
+2011-10
+</th>
+<th style="text-align:right;">
+2011-11
+</th>
+<th style="text-align:right;">
+2011-12
+</th>
+<th style="text-align:right;">
+2012-01
+</th>
+<th style="text-align:right;">
+2012-02
+</th>
+<th style="text-align:right;">
+2012-03
+</th>
+<th style="text-align:right;">
+2012-04
+</th>
+<th style="text-align:right;">
+2012-05
+</th>
+<th style="text-align:right;">
+2012-06
+</th>
+<th style="text-align:right;">
+2012-07
+</th>
+<th style="text-align:right;">
+2012-08
+</th>
+<th style="text-align:right;">
+2012-09
+</th>
+<th style="text-align:right;">
+2012-10
+</th>
+<th style="text-align:right;">
+2012-11
+</th>
+<th style="text-align:right;">
+2012-12
+</th>
+<th style="text-align:right;">
+2013-01
+</th>
+<th style="text-align:right;">
+2013-02
+</th>
+<th style="text-align:right;">
+2013-03
+</th>
+<th style="text-align:right;">
+2013-04
+</th>
+<th style="text-align:right;">
+2013-05
+</th>
+<th style="text-align:right;">
+2013-06
+</th>
+<th style="text-align:right;">
+2013-07
+</th>
+<th style="text-align:right;">
+2013-08
+</th>
+<th style="text-align:right;">
+2013-09
+</th>
+<th style="text-align:right;">
+2013-10
+</th>
+<th style="text-align:right;">
+2013-11
+</th>
+<th style="text-align:right;">
+2013-12
+</th>
+<th style="text-align:right;">
+2014-01
+</th>
+<th style="text-align:right;">
+2014-02
+</th>
+<th style="text-align:right;">
+2014-03
+</th>
+<th style="text-align:right;">
+2014-04
+</th>
+<th style="text-align:right;">
+2014-05
+</th>
+<th style="text-align:right;">
+2014-06
+</th>
+<th style="text-align:right;">
+2014-07
+</th>
+<th style="text-align:right;">
+2014-08
+</th>
+<th style="text-align:right;">
+2014-09
+</th>
+<th style="text-align:right;">
+2014-10
+</th>
+<th style="text-align:right;">
+2014-11
+</th>
+<th style="text-align:right;">
+2014-12
+</th>
+<th style="text-align:right;">
+2015-01
+</th>
+<th style="text-align:right;">
+2015-02
+</th>
+<th style="text-align:right;">
+2015-03
+</th>
+<th style="text-align:right;">
+2015-04
+</th>
+<th style="text-align:right;">
+2015-05
+</th>
+<th style="text-align:right;">
+2015-06
+</th>
+<th style="text-align:right;">
+2015-07
+</th>
+<th style="text-align:right;">
+2015-08
+</th>
+<th style="text-align:right;">
+2015-09
+</th>
+<th style="text-align:right;">
+2015-10
+</th>
+<th style="text-align:right;">
+2015-11
+</th>
+<th style="text-align:right;">
+2015-12
+</th>
+<th style="text-align:right;">
+2016-01
+</th>
+<th style="text-align:right;">
+2016-02
+</th>
+<th style="text-align:right;">
+2016-03
+</th>
+<th style="text-align:right;">
+2016-04
+</th>
+<th style="text-align:right;">
+2016-05
+</th>
+<th style="text-align:right;">
+2016-06
+</th>
+<th style="text-align:right;">
+2016-07
+</th>
+<th style="text-align:right;">
+2016-08
+</th>
+<th style="text-align:right;">
+2016-09
+</th>
+<th style="text-align:right;">
+2016-10
+</th>
+<th style="text-align:right;">
+2016-11
+</th>
+<th style="text-align:right;">
+2016-12
+</th>
+<th style="text-align:right;">
+2017-01
+</th>
+<th style="text-align:right;">
+2017-02
+</th>
+<th style="text-align:right;">
+2017-03
+</th>
+<th style="text-align:right;">
+2017-04
+</th>
+<th style="text-align:right;">
+2017-05
+</th>
+<th style="text-align:right;">
+2017-06
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+61639
+</td>
+<td style="text-align:right;">
+10025
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:left;">
+NY
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+798600
+</td>
+<td style="text-align:right;">
+798800
+</td>
+<td style="text-align:right;">
+801500
+</td>
+<td style="text-align:right;">
+804600
+</td>
+<td style="text-align:right;">
+814900
+</td>
+<td style="text-align:right;">
+828300
+</td>
+<td style="text-align:right;">
+835700
+</td>
+<td style="text-align:right;">
+849300
+</td>
+<td style="text-align:right;">
+858100
+</td>
+<td style="text-align:right;">
+854000
+</td>
+<td style="text-align:right;">
+834800
+</td>
+<td style="text-align:right;">
+821700
+</td>
+<td style="text-align:right;">
+830300
+</td>
+<td style="text-align:right;">
+853700
+</td>
+<td style="text-align:right;">
+868300
+</td>
+<td style="text-align:right;">
+875200
+</td>
+<td style="text-align:right;">
+882200
+</td>
+<td style="text-align:right;">
+892400
+</td>
+<td style="text-align:right;">
+905000
+</td>
+<td style="text-align:right;">
+924000
+</td>
+<td style="text-align:right;">
+934400
+</td>
+<td style="text-align:right;">
+932100
+</td>
+<td style="text-align:right;">
+927500
+</td>
+<td style="text-align:right;">
+923600
+</td>
+<td style="text-align:right;">
+907900
+</td>
+<td style="text-align:right;">
+890900
+</td>
+<td style="text-align:right;">
+883400
+</td>
+<td style="text-align:right;">
+896100
+</td>
+<td style="text-align:right;">
+923900
+</td>
+<td style="text-align:right;">
+952900
+</td>
+<td style="text-align:right;">
+964600
+</td>
+<td style="text-align:right;">
+972500
+</td>
+<td style="text-align:right;">
+973800
+</td>
+<td style="text-align:right;">
+973400
+</td>
+<td style="text-align:right;">
+966500
+</td>
+<td style="text-align:right;">
+966800
+</td>
+<td style="text-align:right;">
+967100
+</td>
+<td style="text-align:right;">
+974800
+</td>
+<td style="text-align:right;">
+976800
+</td>
+<td style="text-align:right;">
+976100
+</td>
+<td style="text-align:right;">
+973700
+</td>
+<td style="text-align:right;">
+974500
+</td>
+<td style="text-align:right;">
+973200
+</td>
+<td style="text-align:right;">
+966400
+</td>
+<td style="text-align:right;">
+950400
+</td>
+<td style="text-align:right;">
+933300
+</td>
+<td style="text-align:right;">
+920900
+</td>
+<td style="text-align:right;">
+909400
+</td>
+<td style="text-align:right;">
+891400
+</td>
+<td style="text-align:right;">
+873300
+</td>
+<td style="text-align:right;">
+858800
+</td>
+<td style="text-align:right;">
+850200
+</td>
+<td style="text-align:right;">
+842800
+</td>
+<td style="text-align:right;">
+834000
+</td>
+<td style="text-align:right;">
+828800
+</td>
+<td style="text-align:right;">
+821400
+</td>
+<td style="text-align:right;">
+813900
+</td>
+<td style="text-align:right;">
+813300
+</td>
+<td style="text-align:right;">
+821500
+</td>
+<td style="text-align:right;">
+831700
+</td>
+<td style="text-align:right;">
+845100
+</td>
+<td style="text-align:right;">
+854500
+</td>
+<td style="text-align:right;">
+858900
+</td>
+<td style="text-align:right;">
+859200
+</td>
+<td style="text-align:right;">
+863500
+</td>
+<td style="text-align:right;">
+876000
+</td>
+<td style="text-align:right;">
+886100
+</td>
+<td style="text-align:right;">
+890000
+</td>
+<td style="text-align:right;">
+894200
+</td>
+<td style="text-align:right;">
+901800
+</td>
+<td style="text-align:right;">
+909500
+</td>
+<td style="text-align:right;">
+913300
+</td>
+<td style="text-align:right;">
+907400
+</td>
+<td style="text-align:right;">
+900000
+</td>
+<td style="text-align:right;">
+897700
+</td>
+<td style="text-align:right;">
+896300
+</td>
+<td style="text-align:right;">
+892300
+</td>
+<td style="text-align:right;">
+890400
+</td>
+<td style="text-align:right;">
+888600
+</td>
+<td style="text-align:right;">
+891700
+</td>
+<td style="text-align:right;">
+899500
+</td>
+<td style="text-align:right;">
+904400
+</td>
+<td style="text-align:right;">
+908200
+</td>
+<td style="text-align:right;">
+914000
+</td>
+<td style="text-align:right;">
+915100
+</td>
+<td style="text-align:right;">
+912300
+</td>
+<td style="text-align:right;">
+914000
+</td>
+<td style="text-align:right;">
+921100
+</td>
+<td style="text-align:right;">
+923300
+</td>
+<td style="text-align:right;">
+917300
+</td>
+<td style="text-align:right;">
+915000
+</td>
+<td style="text-align:right;">
+922800
+</td>
+<td style="text-align:right;">
+929100
+</td>
+<td style="text-align:right;">
+937700
+</td>
+<td style="text-align:right;">
+955700
+</td>
+<td style="text-align:right;">
+974200
+</td>
+<td style="text-align:right;">
+995500
+</td>
+<td style="text-align:right;">
+1019500
+</td>
+<td style="text-align:right;">
+1035100
+</td>
+<td style="text-align:right;">
+1054900
+</td>
+<td style="text-align:right;">
+1079900
+</td>
+<td style="text-align:right;">
+1092600
+</td>
+<td style="text-align:right;">
+1103500
+</td>
+<td style="text-align:right;">
+1118800
+</td>
+<td style="text-align:right;">
+1139300
+</td>
+<td style="text-align:right;">
+1154600
+</td>
+<td style="text-align:right;">
+1144100
+</td>
+<td style="text-align:right;">
+1120300
+</td>
+<td style="text-align:right;">
+1125500
+</td>
+<td style="text-align:right;">
+1136000
+</td>
+<td style="text-align:right;">
+1135100
+</td>
+<td style="text-align:right;">
+1130000
+</td>
+<td style="text-align:right;">
+1138200
+</td>
+<td style="text-align:right;">
+1153700
+</td>
+<td style="text-align:right;">
+1174800
+</td>
+<td style="text-align:right;">
+1185400
+</td>
+<td style="text-align:right;">
+1188400
+</td>
+<td style="text-align:right;">
+1189700
+</td>
+<td style="text-align:right;">
+1193700
+</td>
+<td style="text-align:right;">
+1199900
+</td>
+<td style="text-align:right;">
+1201400
+</td>
+<td style="text-align:right;">
+1202600
+</td>
+<td style="text-align:right;">
+1214200
+</td>
+<td style="text-align:right;">
+1235200
+</td>
+<td style="text-align:right;">
+1258000
+</td>
+<td style="text-align:right;">
+1287700
+</td>
+<td style="text-align:right;">
+1307200
+</td>
+<td style="text-align:right;">
+1313900
+</td>
+<td style="text-align:right;">
+1317100
+</td>
+<td style="text-align:right;">
+1327400
+</td>
+<td style="text-align:right;">
+1338800
+</td>
+<td style="text-align:right;">
+1350400
+</td>
+<td style="text-align:right;">
+1356600
+</td>
+<td style="text-align:right;">
+1358500
+</td>
+<td style="text-align:right;">
+1364000
+</td>
+<td style="text-align:right;">
+1373300
+</td>
+<td style="text-align:right;">
+1382600
+</td>
+<td style="text-align:right;">
+1374400
+</td>
+<td style="text-align:right;">
+1364100
+</td>
+<td style="text-align:right;">
+1366300
+</td>
+<td style="text-align:right;">
+1354800
+</td>
+<td style="text-align:right;">
+1327500
+</td>
+<td style="text-align:right;">
+1317300
+</td>
+<td style="text-align:right;">
+1333700
+</td>
+<td style="text-align:right;">
+1352100
+</td>
+<td style="text-align:right;">
+1390000
+</td>
+<td style="text-align:right;">
+1431000
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+84654
+</td>
+<td style="text-align:right;">
+60657
+</td>
+<td style="text-align:left;">
+Chicago
+</td>
+<td style="text-align:left;">
+IL
+</td>
+<td style="text-align:left;">
+Chicago
+</td>
+<td style="text-align:left;">
+Cook
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+167700
+</td>
+<td style="text-align:right;">
+166400
+</td>
+<td style="text-align:right;">
+166700
+</td>
+<td style="text-align:right;">
+167200
+</td>
+<td style="text-align:right;">
+166900
+</td>
+<td style="text-align:right;">
+166900
+</td>
+<td style="text-align:right;">
+168000
+</td>
+<td style="text-align:right;">
+170100
+</td>
+<td style="text-align:right;">
+171700
+</td>
+<td style="text-align:right;">
+173000
+</td>
+<td style="text-align:right;">
+174600
+</td>
+<td style="text-align:right;">
+177600
+</td>
+<td style="text-align:right;">
+180100
+</td>
+<td style="text-align:right;">
+182300
+</td>
+<td style="text-align:right;">
+184400
+</td>
+<td style="text-align:right;">
+186300
+</td>
+<td style="text-align:right;">
+187600
+</td>
+<td style="text-align:right;">
+189400
+</td>
+<td style="text-align:right;">
+190300
+</td>
+<td style="text-align:right;">
+189700
+</td>
+<td style="text-align:right;">
+189800
+</td>
+<td style="text-align:right;">
+191900
+</td>
+<td style="text-align:right;">
+194500
+</td>
+<td style="text-align:right;">
+195500
+</td>
+<td style="text-align:right;">
+196000
+</td>
+<td style="text-align:right;">
+196900
+</td>
+<td style="text-align:right;">
+198900
+</td>
+<td style="text-align:right;">
+201400
+</td>
+<td style="text-align:right;">
+204600
+</td>
+<td style="text-align:right;">
+207900
+</td>
+<td style="text-align:right;">
+211800
+</td>
+<td style="text-align:right;">
+214600
+</td>
+<td style="text-align:right;">
+216000
+</td>
+<td style="text-align:right;">
+217500
+</td>
+<td style="text-align:right;">
+220200
+</td>
+<td style="text-align:right;">
+222800
+</td>
+<td style="text-align:right;">
+226200
+</td>
+<td style="text-align:right;">
+229600
+</td>
+<td style="text-align:right;">
+232400
+</td>
+<td style="text-align:right;">
+234400
+</td>
+<td style="text-align:right;">
+236300
+</td>
+<td style="text-align:right;">
+238300
+</td>
+<td style="text-align:right;">
+241800
+</td>
+<td style="text-align:right;">
+246100
+</td>
+<td style="text-align:right;">
+249500
+</td>
+<td style="text-align:right;">
+251300
+</td>
+<td style="text-align:right;">
+253200
+</td>
+<td style="text-align:right;">
+255700
+</td>
+<td style="text-align:right;">
+259200
+</td>
+<td style="text-align:right;">
+263100
+</td>
+<td style="text-align:right;">
+266600
+</td>
+<td style="text-align:right;">
+269500
+</td>
+<td style="text-align:right;">
+272800
+</td>
+<td style="text-align:right;">
+275500
+</td>
+<td style="text-align:right;">
+278800
+</td>
+<td style="text-align:right;">
+283400
+</td>
+<td style="text-align:right;">
+288600
+</td>
+<td style="text-align:right;">
+291300
+</td>
+<td style="text-align:right;">
+292400
+</td>
+<td style="text-align:right;">
+294600
+</td>
+<td style="text-align:right;">
+297100
+</td>
+<td style="text-align:right;">
+298200
+</td>
+<td style="text-align:right;">
+299800
+</td>
+<td style="text-align:right;">
+302000
+</td>
+<td style="text-align:right;">
+304200
+</td>
+<td style="text-align:right;">
+307900
+</td>
+<td style="text-align:right;">
+311000
+</td>
+<td style="text-align:right;">
+311400
+</td>
+<td style="text-align:right;">
+311000
+</td>
+<td style="text-align:right;">
+311700
+</td>
+<td style="text-align:right;">
+312300
+</td>
+<td style="text-align:right;">
+312000
+</td>
+<td style="text-align:right;">
+311800
+</td>
+<td style="text-align:right;">
+312600
+</td>
+<td style="text-align:right;">
+313000
+</td>
+<td style="text-align:right;">
+314400
+</td>
+<td style="text-align:right;">
+317300
+</td>
+<td style="text-align:right;">
+319700
+</td>
+<td style="text-align:right;">
+320500
+</td>
+<td style="text-align:right;">
+321000
+</td>
+<td style="text-align:right;">
+321600
+</td>
+<td style="text-align:right;">
+323800
+</td>
+<td style="text-align:right;">
+326100
+</td>
+<td style="text-align:right;">
+329000
+</td>
+<td style="text-align:right;">
+332200
+</td>
+<td style="text-align:right;">
+334700
+</td>
+<td style="text-align:right;">
+336000
+</td>
+<td style="text-align:right;">
+337300
+</td>
+<td style="text-align:right;">
+337500
+</td>
+<td style="text-align:right;">
+337100
+</td>
+<td style="text-align:right;">
+334900
+</td>
+<td style="text-align:right;">
+333100
+</td>
+<td style="text-align:right;">
+332800
+</td>
+<td style="text-align:right;">
+333400
+</td>
+<td style="text-align:right;">
+335100
+</td>
+<td style="text-align:right;">
+337800
+</td>
+<td style="text-align:right;">
+339400
+</td>
+<td style="text-align:right;">
+340700
+</td>
+<td style="text-align:right;">
+343200
+</td>
+<td style="text-align:right;">
+345000
+</td>
+<td style="text-align:right;">
+345200
+</td>
+<td style="text-align:right;">
+344600
+</td>
+<td style="text-align:right;">
+344500
+</td>
+<td style="text-align:right;">
+346200
+</td>
+<td style="text-align:right;">
+349800
+</td>
+<td style="text-align:right;">
+353400
+</td>
+<td style="text-align:right;">
+355100
+</td>
+<td style="text-align:right;">
+356300
+</td>
+<td style="text-align:right;">
+358300
+</td>
+<td style="text-align:right;">
+359500
+</td>
+<td style="text-align:right;">
+359200
+</td>
+<td style="text-align:right;">
+358500
+</td>
+<td style="text-align:right;">
+359100
+</td>
+<td style="text-align:right;">
+361400
+</td>
+<td style="text-align:right;">
+364700
+</td>
+<td style="text-align:right;">
+367500
+</td>
+<td style="text-align:right;">
+369400
+</td>
+<td style="text-align:right;">
+369800
+</td>
+<td style="text-align:right;">
+369600
+</td>
+<td style="text-align:right;">
+368700
+</td>
+<td style="text-align:right;">
+368100
+</td>
+<td style="text-align:right;">
+369000
+</td>
+<td style="text-align:right;">
+370300
+</td>
+<td style="text-align:right;">
+371700
+</td>
+<td style="text-align:right;">
+374200
+</td>
+<td style="text-align:right;">
+375700
+</td>
+<td style="text-align:right;">
+376400
+</td>
+<td style="text-align:right;">
+378200
+</td>
+<td style="text-align:right;">
+379800
+</td>
+<td style="text-align:right;">
+380100
+</td>
+<td style="text-align:right;">
+380400
+</td>
+<td style="text-align:right;">
+381200
+</td>
+<td style="text-align:right;">
+382700
+</td>
+<td style="text-align:right;">
+382700
+</td>
+<td style="text-align:right;">
+380200
+</td>
+<td style="text-align:right;">
+377800
+</td>
+<td style="text-align:right;">
+376300
+</td>
+<td style="text-align:right;">
+375600
+</td>
+<td style="text-align:right;">
+376000
+</td>
+<td style="text-align:right;">
+376200
+</td>
+<td style="text-align:right;">
+375800
+</td>
+<td style="text-align:right;">
+376300
+</td>
+<td style="text-align:right;">
+377200
+</td>
+<td style="text-align:right;">
+376800
+</td>
+<td style="text-align:right;">
+373700
+</td>
+<td style="text-align:right;">
+370100
+</td>
+<td style="text-align:right;">
+368700
+</td>
+<td style="text-align:right;">
+368600
+</td>
+<td style="text-align:right;">
+366600
+</td>
+<td style="text-align:right;">
+362200
+</td>
+<td style="text-align:right;">
+358600
+</td>
+<td style="text-align:right;">
+355300
+</td>
+<td style="text-align:right;">
+352300
+</td>
+<td style="text-align:right;">
+350900
+</td>
+<td style="text-align:right;">
+350100
+</td>
+<td style="text-align:right;">
+347900
+</td>
+<td style="text-align:right;">
+345400
+</td>
+<td style="text-align:right;">
+343400
+</td>
+<td style="text-align:right;">
+342800
+</td>
+<td style="text-align:right;">
+342600
+</td>
+<td style="text-align:right;">
+341100
+</td>
+<td style="text-align:right;">
+339900
+</td>
+<td style="text-align:right;">
+338900
+</td>
+<td style="text-align:right;">
+338200
+</td>
+<td style="text-align:right;">
+335200
+</td>
+<td style="text-align:right;">
+329800
+</td>
+<td style="text-align:right;">
+325500
+</td>
+<td style="text-align:right;">
+323600
+</td>
+<td style="text-align:right;">
+323400
+</td>
+<td style="text-align:right;">
+325000
+</td>
+<td style="text-align:right;">
+325800
+</td>
+<td style="text-align:right;">
+323200
+</td>
+<td style="text-align:right;">
+320100
+</td>
+<td style="text-align:right;">
+318600
+</td>
+<td style="text-align:right;">
+317400
+</td>
+<td style="text-align:right;">
+315700
+</td>
+<td style="text-align:right;">
+315000
+</td>
+<td style="text-align:right;">
+315300
+</td>
+<td style="text-align:right;">
+315600
+</td>
+<td style="text-align:right;">
+313900
+</td>
+<td style="text-align:right;">
+309800
+</td>
+<td style="text-align:right;">
+305700
+</td>
+<td style="text-align:right;">
+301800
+</td>
+<td style="text-align:right;">
+299500
+</td>
+<td style="text-align:right;">
+299900
+</td>
+<td style="text-align:right;">
+301100
+</td>
+<td style="text-align:right;">
+300300
+</td>
+<td style="text-align:right;">
+298900
+</td>
+<td style="text-align:right;">
+298500
+</td>
+<td style="text-align:right;">
+298500
+</td>
+<td style="text-align:right;">
+297000
+</td>
+<td style="text-align:right;">
+296800
+</td>
+<td style="text-align:right;">
+298700
+</td>
+<td style="text-align:right;">
+299600
+</td>
+<td style="text-align:right;">
+300700
+</td>
+<td style="text-align:right;">
+303900
+</td>
+<td style="text-align:right;">
+306800
+</td>
+<td style="text-align:right;">
+307500
+</td>
+<td style="text-align:right;">
+308500
+</td>
+<td style="text-align:right;">
+310000
+</td>
+<td style="text-align:right;">
+310800
+</td>
+<td style="text-align:right;">
+311200
+</td>
+<td style="text-align:right;">
+313000
+</td>
+<td style="text-align:right;">
+315800
+</td>
+<td style="text-align:right;">
+319000
+</td>
+<td style="text-align:right;">
+323400
+</td>
+<td style="text-align:right;">
+327500
+</td>
+<td style="text-align:right;">
+330000
+</td>
+<td style="text-align:right;">
+331800
+</td>
+<td style="text-align:right;">
+334500
+</td>
+<td style="text-align:right;">
+336000
+</td>
+<td style="text-align:right;">
+335700
+</td>
+<td style="text-align:right;">
+335400
+</td>
+<td style="text-align:right;">
+336300
+</td>
+<td style="text-align:right;">
+338800
+</td>
+<td style="text-align:right;">
+342400
+</td>
+<td style="text-align:right;">
+344400
+</td>
+<td style="text-align:right;">
+344000
+</td>
+<td style="text-align:right;">
+343900
+</td>
+<td style="text-align:right;">
+345100
+</td>
+<td style="text-align:right;">
+346100
+</td>
+<td style="text-align:right;">
+346900
+</td>
+<td style="text-align:right;">
+348000
+</td>
+<td style="text-align:right;">
+349700
+</td>
+<td style="text-align:right;">
+351200
+</td>
+<td style="text-align:right;">
+351700
+</td>
+<td style="text-align:right;">
+350700
+</td>
+<td style="text-align:right;">
+350400
+</td>
+<td style="text-align:right;">
+352000
+</td>
+<td style="text-align:right;">
+354300
+</td>
+<td style="text-align:right;">
+355900
+</td>
+<td style="text-align:right;">
+356500
+</td>
+<td style="text-align:right;">
+355200
+</td>
+<td style="text-align:right;">
+353800
+</td>
+<td style="text-align:right;">
+353700
+</td>
+<td style="text-align:right;">
+354600
+</td>
+<td style="text-align:right;">
+356200
+</td>
+<td style="text-align:right;">
+357800
+</td>
+<td style="text-align:right;">
+358200
+</td>
+<td style="text-align:right;">
+358500
+</td>
+<td style="text-align:right;">
+360300
+</td>
+<td style="text-align:right;">
+362400
+</td>
+<td style="text-align:right;">
+363700
+</td>
+<td style="text-align:right;">
+365200
+</td>
+<td style="text-align:right;">
+367100
+</td>
+<td style="text-align:right;">
+368600
+</td>
+<td style="text-align:right;">
+370200
+</td>
+<td style="text-align:right;">
+372300
+</td>
+<td style="text-align:right;">
+375300
+</td>
+<td style="text-align:right;">
+378700
+</td>
+<td style="text-align:right;">
+381400
+</td>
+<td style="text-align:right;">
+381800
+</td>
+<td style="text-align:right;">
+382100
+</td>
+<td style="text-align:right;">
+383300
+</td>
+<td style="text-align:right;">
+385100
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+61637
+</td>
+<td style="text-align:right;">
+10023
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:left;">
+NY
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1526800
+</td>
+<td style="text-align:right;">
+1424500
+</td>
+<td style="text-align:right;">
+1346600
+</td>
+<td style="text-align:right;">
+1331300
+</td>
+<td style="text-align:right;">
+1322500
+</td>
+<td style="text-align:right;">
+1289300
+</td>
+<td style="text-align:right;">
+1265400
+</td>
+<td style="text-align:right;">
+1249700
+</td>
+<td style="text-align:right;">
+1241100
+</td>
+<td style="text-align:right;">
+1232700
+</td>
+<td style="text-align:right;">
+1225500
+</td>
+<td style="text-align:right;">
+1228200
+</td>
+<td style="text-align:right;">
+1252600
+</td>
+<td style="text-align:right;">
+1266100
+</td>
+<td style="text-align:right;">
+1288700
+</td>
+<td style="text-align:right;">
+1308100
+</td>
+<td style="text-align:right;">
+1333000
+</td>
+<td style="text-align:right;">
+1356400
+</td>
+<td style="text-align:right;">
+1362000
+</td>
+<td style="text-align:right;">
+1353600
+</td>
+<td style="text-align:right;">
+1364000
+</td>
+<td style="text-align:right;">
+1373900
+</td>
+<td style="text-align:right;">
+1389600
+</td>
+<td style="text-align:right;">
+1401600
+</td>
+<td style="text-align:right;">
+1404100
+</td>
+<td style="text-align:right;">
+1415800
+</td>
+<td style="text-align:right;">
+1432400
+</td>
+<td style="text-align:right;">
+1455400
+</td>
+<td style="text-align:right;">
+1474200
+</td>
+<td style="text-align:right;">
+1462300
+</td>
+<td style="text-align:right;">
+1438300
+</td>
+<td style="text-align:right;">
+1435500
+</td>
+<td style="text-align:right;">
+1427800
+</td>
+<td style="text-align:right;">
+1411200
+</td>
+<td style="text-align:right;">
+1407400
+</td>
+<td style="text-align:right;">
+1419700
+</td>
+<td style="text-align:right;">
+1457400
+</td>
+<td style="text-align:right;">
+1500800
+</td>
+<td style="text-align:right;">
+1524900
+</td>
+<td style="text-align:right;">
+1537800
+</td>
+<td style="text-align:right;">
+1558700
+</td>
+<td style="text-align:right;">
+1586100
+</td>
+<td style="text-align:right;">
+1602300
+</td>
+<td style="text-align:right;">
+1621100
+</td>
+<td style="text-align:right;">
+1639300
+</td>
+<td style="text-align:right;">
+1657400
+</td>
+<td style="text-align:right;">
+1657400
+</td>
+<td style="text-align:right;">
+1656100
+</td>
+<td style="text-align:right;">
+1649400
+</td>
+<td style="text-align:right;">
+1643400
+</td>
+<td style="text-align:right;">
+1632400
+</td>
+<td style="text-align:right;">
+1618200
+</td>
+<td style="text-align:right;">
+1588300
+</td>
+<td style="text-align:right;">
+1543600
+</td>
+<td style="text-align:right;">
+1500800
+</td>
+<td style="text-align:right;">
+1464200
+</td>
+<td style="text-align:right;">
+1426100
+</td>
+<td style="text-align:right;">
+1387300
+</td>
+<td style="text-align:right;">
+1362600
+</td>
+<td style="text-align:right;">
+1351700
+</td>
+<td style="text-align:right;">
+1344300
+</td>
+<td style="text-align:right;">
+1331800
+</td>
+<td style="text-align:right;">
+1334800
+</td>
+<td style="text-align:right;">
+1314200
+</td>
+<td style="text-align:right;">
+1271900
+</td>
+<td style="text-align:right;">
+1252300
+</td>
+<td style="text-align:right;">
+1262300
+</td>
+<td style="text-align:right;">
+1279200
+</td>
+<td style="text-align:right;">
+1309000
+</td>
+<td style="text-align:right;">
+1335300
+</td>
+<td style="text-align:right;">
+1353800
+</td>
+<td style="text-align:right;">
+1366400
+</td>
+<td style="text-align:right;">
+1372100
+</td>
+<td style="text-align:right;">
+1381300
+</td>
+<td style="text-align:right;">
+1385000
+</td>
+<td style="text-align:right;">
+1388100
+</td>
+<td style="text-align:right;">
+1399100
+</td>
+<td style="text-align:right;">
+1399800
+</td>
+<td style="text-align:right;">
+1389300
+</td>
+<td style="text-align:right;">
+1384700
+</td>
+<td style="text-align:right;">
+1380900
+</td>
+<td style="text-align:right;">
+1367900
+</td>
+<td style="text-align:right;">
+1365400
+</td>
+<td style="text-align:right;">
+1375100
+</td>
+<td style="text-align:right;">
+1380400
+</td>
+<td style="text-align:right;">
+1377000
+</td>
+<td style="text-align:right;">
+1375100
+</td>
+<td style="text-align:right;">
+1379000
+</td>
+<td style="text-align:right;">
+1395200
+</td>
+<td style="text-align:right;">
+1414500
+</td>
+<td style="text-align:right;">
+1419000
+</td>
+<td style="text-align:right;">
+1403100
+</td>
+<td style="text-align:right;">
+1383200
+</td>
+<td style="text-align:right;">
+1376700
+</td>
+<td style="text-align:right;">
+1378200
+</td>
+<td style="text-align:right;">
+1378700
+</td>
+<td style="text-align:right;">
+1375900
+</td>
+<td style="text-align:right;">
+1366700
+</td>
+<td style="text-align:right;">
+1365500
+</td>
+<td style="text-align:right;">
+1382200
+</td>
+<td style="text-align:right;">
+1404700
+</td>
+<td style="text-align:right;">
+1428000
+</td>
+<td style="text-align:right;">
+1445700
+</td>
+<td style="text-align:right;">
+1452900
+</td>
+<td style="text-align:right;">
+1460100
+</td>
+<td style="text-align:right;">
+1484400
+</td>
+<td style="text-align:right;">
+1508400
+</td>
+<td style="text-align:right;">
+1522800
+</td>
+<td style="text-align:right;">
+1538300
+</td>
+<td style="text-align:right;">
+1568600
+</td>
+<td style="text-align:right;">
+1597400
+</td>
+<td style="text-align:right;">
+1622900
+</td>
+<td style="text-align:right;">
+1654300
+</td>
+<td style="text-align:right;">
+1684600
+</td>
+<td style="text-align:right;">
+1713000
+</td>
+<td style="text-align:right;">
+1728800
+</td>
+<td style="text-align:right;">
+1736100
+</td>
+<td style="text-align:right;">
+1745900
+</td>
+<td style="text-align:right;">
+1753800
+</td>
+<td style="text-align:right;">
+1736600
+</td>
+<td style="text-align:right;">
+1730400
+</td>
+<td style="text-align:right;">
+1734500
+</td>
+<td style="text-align:right;">
+1728700
+</td>
+<td style="text-align:right;">
+1720800
+</td>
+<td style="text-align:right;">
+1717700
+</td>
+<td style="text-align:right;">
+1700100
+</td>
+<td style="text-align:right;">
+1680400
+</td>
+<td style="text-align:right;">
+1676400
+</td>
+<td style="text-align:right;">
+1685600
+</td>
+<td style="text-align:right;">
+1708100
+</td>
+<td style="text-align:right;">
+1730400
+</td>
+<td style="text-align:right;">
+1751800
+</td>
+<td style="text-align:right;">
+1778300
+</td>
+<td style="text-align:right;">
+1810400
+</td>
+<td style="text-align:right;">
+1831600
+</td>
+<td style="text-align:right;">
+1844400
+</td>
+<td style="text-align:right;">
+1861600
+</td>
+<td style="text-align:right;">
+1889600
+</td>
+<td style="text-align:right;">
+1901500
+</td>
+<td style="text-align:right;">
+1895300
+</td>
+<td style="text-align:right;">
+1890200
+</td>
+<td style="text-align:right;">
+1898400
+</td>
+<td style="text-align:right;">
+1924500
+</td>
+<td style="text-align:right;">
+1967300
+</td>
+<td style="text-align:right;">
+1993500
+</td>
+<td style="text-align:right;">
+1980700
+</td>
+<td style="text-align:right;">
+1960900
+</td>
+<td style="text-align:right;">
+1951300
+</td>
+<td style="text-align:right;">
+1937800
+</td>
+<td style="text-align:right;">
+1929800
+</td>
+<td style="text-align:right;">
+1955000
+</td>
+<td style="text-align:right;">
+2022400
+</td>
+<td style="text-align:right;">
+2095000
+</td>
+<td style="text-align:right;">
+2142300
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+84616
+</td>
+<td style="text-align:right;">
+60614
+</td>
+<td style="text-align:left;">
+Chicago
+</td>
+<td style="text-align:left;">
+IL
+</td>
+<td style="text-align:left;">
+Chicago
+</td>
+<td style="text-align:left;">
+Cook
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+195800
+</td>
+<td style="text-align:right;">
+193500
+</td>
+<td style="text-align:right;">
+192600
+</td>
+<td style="text-align:right;">
+192300
+</td>
+<td style="text-align:right;">
+192600
+</td>
+<td style="text-align:right;">
+193600
+</td>
+<td style="text-align:right;">
+195500
+</td>
+<td style="text-align:right;">
+197600
+</td>
+<td style="text-align:right;">
+199400
+</td>
+<td style="text-align:right;">
+201300
+</td>
+<td style="text-align:right;">
+203600
+</td>
+<td style="text-align:right;">
+206500
+</td>
+<td style="text-align:right;">
+209200
+</td>
+<td style="text-align:right;">
+211100
+</td>
+<td style="text-align:right;">
+212600
+</td>
+<td style="text-align:right;">
+214400
+</td>
+<td style="text-align:right;">
+215600
+</td>
+<td style="text-align:right;">
+216500
+</td>
+<td style="text-align:right;">
+217900
+</td>
+<td style="text-align:right;">
+220100
+</td>
+<td style="text-align:right;">
+222200
+</td>
+<td style="text-align:right;">
+223900
+</td>
+<td style="text-align:right;">
+225400
+</td>
+<td style="text-align:right;">
+227700
+</td>
+<td style="text-align:right;">
+230100
+</td>
+<td style="text-align:right;">
+231700
+</td>
+<td style="text-align:right;">
+232700
+</td>
+<td style="text-align:right;">
+233700
+</td>
+<td style="text-align:right;">
+234700
+</td>
+<td style="text-align:right;">
+235600
+</td>
+<td style="text-align:right;">
+236800
+</td>
+<td style="text-align:right;">
+238800
+</td>
+<td style="text-align:right;">
+240800
+</td>
+<td style="text-align:right;">
+242400
+</td>
+<td style="text-align:right;">
+243800
+</td>
+<td style="text-align:right;">
+246400
+</td>
+<td style="text-align:right;">
+250200
+</td>
+<td style="text-align:right;">
+254300
+</td>
+<td style="text-align:right;">
+257600
+</td>
+<td style="text-align:right;">
+261100
+</td>
+<td style="text-align:right;">
+264800
+</td>
+<td style="text-align:right;">
+267900
+</td>
+<td style="text-align:right;">
+270700
+</td>
+<td style="text-align:right;">
+272800
+</td>
+<td style="text-align:right;">
+274400
+</td>
+<td style="text-align:right;">
+276200
+</td>
+<td style="text-align:right;">
+278600
+</td>
+<td style="text-align:right;">
+280100
+</td>
+<td style="text-align:right;">
+283100
+</td>
+<td style="text-align:right;">
+287700
+</td>
+<td style="text-align:right;">
+293600
+</td>
+<td style="text-align:right;">
+298500
+</td>
+<td style="text-align:right;">
+302700
+</td>
+<td style="text-align:right;">
+305000
+</td>
+<td style="text-align:right;">
+306800
+</td>
+<td style="text-align:right;">
+309400
+</td>
+<td style="text-align:right;">
+313100
+</td>
+<td style="text-align:right;">
+314900
+</td>
+<td style="text-align:right;">
+316200
+</td>
+<td style="text-align:right;">
+318200
+</td>
+<td style="text-align:right;">
+320600
+</td>
+<td style="text-align:right;">
+322900
+</td>
+<td style="text-align:right;">
+325500
+</td>
+<td style="text-align:right;">
+328400
+</td>
+<td style="text-align:right;">
+330700
+</td>
+<td style="text-align:right;">
+332800
+</td>
+<td style="text-align:right;">
+334400
+</td>
+<td style="text-align:right;">
+335900
+</td>
+<td style="text-align:right;">
+337400
+</td>
+<td style="text-align:right;">
+339700
+</td>
+<td style="text-align:right;">
+342300
+</td>
+<td style="text-align:right;">
+343800
+</td>
+<td style="text-align:right;">
+343400
+</td>
+<td style="text-align:right;">
+342300
+</td>
+<td style="text-align:right;">
+341800
+</td>
+<td style="text-align:right;">
+341700
+</td>
+<td style="text-align:right;">
+342400
+</td>
+<td style="text-align:right;">
+344300
+</td>
+<td style="text-align:right;">
+346900
+</td>
+<td style="text-align:right;">
+348900
+</td>
+<td style="text-align:right;">
+350200
+</td>
+<td style="text-align:right;">
+351700
+</td>
+<td style="text-align:right;">
+353500
+</td>
+<td style="text-align:right;">
+355700
+</td>
+<td style="text-align:right;">
+358000
+</td>
+<td style="text-align:right;">
+361600
+</td>
+<td style="text-align:right;">
+364000
+</td>
+<td style="text-align:right;">
+365500
+</td>
+<td style="text-align:right;">
+366400
+</td>
+<td style="text-align:right;">
+367000
+</td>
+<td style="text-align:right;">
+365200
+</td>
+<td style="text-align:right;">
+363100
+</td>
+<td style="text-align:right;">
+362000
+</td>
+<td style="text-align:right;">
+362500
+</td>
+<td style="text-align:right;">
+364800
+</td>
+<td style="text-align:right;">
+368200
+</td>
+<td style="text-align:right;">
+370800
+</td>
+<td style="text-align:right;">
+371400
+</td>
+<td style="text-align:right;">
+371200
+</td>
+<td style="text-align:right;">
+371800
+</td>
+<td style="text-align:right;">
+374200
+</td>
+<td style="text-align:right;">
+377800
+</td>
+<td style="text-align:right;">
+380100
+</td>
+<td style="text-align:right;">
+381700
+</td>
+<td style="text-align:right;">
+384400
+</td>
+<td style="text-align:right;">
+386600
+</td>
+<td style="text-align:right;">
+385700
+</td>
+<td style="text-align:right;">
+385400
+</td>
+<td style="text-align:right;">
+388500
+</td>
+<td style="text-align:right;">
+392200
+</td>
+<td style="text-align:right;">
+394500
+</td>
+<td style="text-align:right;">
+394900
+</td>
+<td style="text-align:right;">
+394800
+</td>
+<td style="text-align:right;">
+395500
+</td>
+<td style="text-align:right;">
+400000
+</td>
+<td style="text-align:right;">
+404300
+</td>
+<td style="text-align:right;">
+407600
+</td>
+<td style="text-align:right;">
+409500
+</td>
+<td style="text-align:right;">
+410400
+</td>
+<td style="text-align:right;">
+408700
+</td>
+<td style="text-align:right;">
+406400
+</td>
+<td style="text-align:right;">
+403800
+</td>
+<td style="text-align:right;">
+402400
+</td>
+<td style="text-align:right;">
+402300
+</td>
+<td style="text-align:right;">
+403000
+</td>
+<td style="text-align:right;">
+403100
+</td>
+<td style="text-align:right;">
+403600
+</td>
+<td style="text-align:right;">
+404500
+</td>
+<td style="text-align:right;">
+406100
+</td>
+<td style="text-align:right;">
+407700
+</td>
+<td style="text-align:right;">
+408700
+</td>
+<td style="text-align:right;">
+409600
+</td>
+<td style="text-align:right;">
+409800
+</td>
+<td style="text-align:right;">
+408700
+</td>
+<td style="text-align:right;">
+408600
+</td>
+<td style="text-align:right;">
+411000
+</td>
+<td style="text-align:right;">
+412200
+</td>
+<td style="text-align:right;">
+411400
+</td>
+<td style="text-align:right;">
+410200
+</td>
+<td style="text-align:right;">
+408400
+</td>
+<td style="text-align:right;">
+406600
+</td>
+<td style="text-align:right;">
+406500
+</td>
+<td style="text-align:right;">
+406400
+</td>
+<td style="text-align:right;">
+404600
+</td>
+<td style="text-align:right;">
+402900
+</td>
+<td style="text-align:right;">
+400600
+</td>
+<td style="text-align:right;">
+397500
+</td>
+<td style="text-align:right;">
+392600
+</td>
+<td style="text-align:right;">
+387500
+</td>
+<td style="text-align:right;">
+383700
+</td>
+<td style="text-align:right;">
+381000
+</td>
+<td style="text-align:right;">
+378900
+</td>
+<td style="text-align:right;">
+377700
+</td>
+<td style="text-align:right;">
+377400
+</td>
+<td style="text-align:right;">
+376700
+</td>
+<td style="text-align:right;">
+374000
+</td>
+<td style="text-align:right;">
+369600
+</td>
+<td style="text-align:right;">
+366200
+</td>
+<td style="text-align:right;">
+364500
+</td>
+<td style="text-align:right;">
+364100
+</td>
+<td style="text-align:right;">
+364300
+</td>
+<td style="text-align:right;">
+363600
+</td>
+<td style="text-align:right;">
+361900
+</td>
+<td style="text-align:right;">
+361900
+</td>
+<td style="text-align:right;">
+356400
+</td>
+<td style="text-align:right;">
+347100
+</td>
+<td style="text-align:right;">
+342400
+</td>
+<td style="text-align:right;">
+344000
+</td>
+<td style="text-align:right;">
+345200
+</td>
+<td style="text-align:right;">
+346900
+</td>
+<td style="text-align:right;">
+346100
+</td>
+<td style="text-align:right;">
+342600
+</td>
+<td style="text-align:right;">
+340100
+</td>
+<td style="text-align:right;">
+339900
+</td>
+<td style="text-align:right;">
+338600
+</td>
+<td style="text-align:right;">
+335500
+</td>
+<td style="text-align:right;">
+333900
+</td>
+<td style="text-align:right;">
+335000
+</td>
+<td style="text-align:right;">
+336000
+</td>
+<td style="text-align:right;">
+334200
+</td>
+<td style="text-align:right;">
+330300
+</td>
+<td style="text-align:right;">
+327000
+</td>
+<td style="text-align:right;">
+326000
+</td>
+<td style="text-align:right;">
+326100
+</td>
+<td style="text-align:right;">
+326700
+</td>
+<td style="text-align:right;">
+326300
+</td>
+<td style="text-align:right;">
+324400
+</td>
+<td style="text-align:right;">
+322700
+</td>
+<td style="text-align:right;">
+323200
+</td>
+<td style="text-align:right;">
+322800
+</td>
+<td style="text-align:right;">
+320700
+</td>
+<td style="text-align:right;">
+319500
+</td>
+<td style="text-align:right;">
+320100
+</td>
+<td style="text-align:right;">
+320500
+</td>
+<td style="text-align:right;">
+321800
+</td>
+<td style="text-align:right;">
+323600
+</td>
+<td style="text-align:right;">
+324300
+</td>
+<td style="text-align:right;">
+324100
+</td>
+<td style="text-align:right;">
+324700
+</td>
+<td style="text-align:right;">
+326000
+</td>
+<td style="text-align:right;">
+327600
+</td>
+<td style="text-align:right;">
+329800
+</td>
+<td style="text-align:right;">
+332600
+</td>
+<td style="text-align:right;">
+336800
+</td>
+<td style="text-align:right;">
+342300
+</td>
+<td style="text-align:right;">
+348100
+</td>
+<td style="text-align:right;">
+353600
+</td>
+<td style="text-align:right;">
+358900
+</td>
+<td style="text-align:right;">
+361900
+</td>
+<td style="text-align:right;">
+363900
+</td>
+<td style="text-align:right;">
+366200
+</td>
+<td style="text-align:right;">
+368300
+</td>
+<td style="text-align:right;">
+369800
+</td>
+<td style="text-align:right;">
+371400
+</td>
+<td style="text-align:right;">
+372400
+</td>
+<td style="text-align:right;">
+373200
+</td>
+<td style="text-align:right;">
+373800
+</td>
+<td style="text-align:right;">
+374800
+</td>
+<td style="text-align:right;">
+376200
+</td>
+<td style="text-align:right;">
+376800
+</td>
+<td style="text-align:right;">
+376300
+</td>
+<td style="text-align:right;">
+374900
+</td>
+<td style="text-align:right;">
+373800
+</td>
+<td style="text-align:right;">
+373900
+</td>
+<td style="text-align:right;">
+374700
+</td>
+<td style="text-align:right;">
+375300
+</td>
+<td style="text-align:right;">
+375000
+</td>
+<td style="text-align:right;">
+374700
+</td>
+<td style="text-align:right;">
+376300
+</td>
+<td style="text-align:right;">
+378100
+</td>
+<td style="text-align:right;">
+378000
+</td>
+<td style="text-align:right;">
+377700
+</td>
+<td style="text-align:right;">
+378300
+</td>
+<td style="text-align:right;">
+380000
+</td>
+<td style="text-align:right;">
+383100
+</td>
+<td style="text-align:right;">
+385900
+</td>
+<td style="text-align:right;">
+388100
+</td>
+<td style="text-align:right;">
+389700
+</td>
+<td style="text-align:right;">
+391800
+</td>
+<td style="text-align:right;">
+393400
+</td>
+<td style="text-align:right;">
+394700
+</td>
+<td style="text-align:right;">
+394900
+</td>
+<td style="text-align:right;">
+395700
+</td>
+<td style="text-align:right;">
+396400
+</td>
+<td style="text-align:right;">
+397500
+</td>
+<td style="text-align:right;">
+398900
+</td>
+<td style="text-align:right;">
+401200
+</td>
+<td style="text-align:right;">
+403200
+</td>
+<td style="text-align:right;">
+405700
+</td>
+<td style="text-align:right;">
+408300
+</td>
+<td style="text-align:right;">
+408800
+</td>
+<td style="text-align:right;">
+408000
+</td>
+<td style="text-align:right;">
+410100
+</td>
+<td style="text-align:right;">
+412200
+</td>
+<td style="text-align:right;">
+412200
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+93144
+</td>
+<td style="text-align:right;">
+79936
+</td>
+<td style="text-align:left;">
+El Paso
+</td>
+<td style="text-align:left;">
+TX
+</td>
+<td style="text-align:left;">
+El Paso
+</td>
+<td style="text-align:left;">
+El Paso
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+59100
+</td>
+<td style="text-align:right;">
+60500
+</td>
+<td style="text-align:right;">
+60900
+</td>
+<td style="text-align:right;">
+60800
+</td>
+<td style="text-align:right;">
+60300
+</td>
+<td style="text-align:right;">
+60400
+</td>
+<td style="text-align:right;">
+61200
+</td>
+<td style="text-align:right;">
+61700
+</td>
+<td style="text-align:right;">
+61000
+</td>
+<td style="text-align:right;">
+60100
+</td>
+<td style="text-align:right;">
+59300
+</td>
+<td style="text-align:right;">
+59000
+</td>
+<td style="text-align:right;">
+58700
+</td>
+<td style="text-align:right;">
+58400
+</td>
+<td style="text-align:right;">
+58000
+</td>
+<td style="text-align:right;">
+57800
+</td>
+<td style="text-align:right;">
+57900
+</td>
+<td style="text-align:right;">
+57800
+</td>
+<td style="text-align:right;">
+57800
+</td>
+<td style="text-align:right;">
+58100
+</td>
+<td style="text-align:right;">
+58400
+</td>
+<td style="text-align:right;">
+58700
+</td>
+<td style="text-align:right;">
+59200
+</td>
+<td style="text-align:right;">
+59400
+</td>
+<td style="text-align:right;">
+58700
+</td>
+<td style="text-align:right;">
+58100
+</td>
+<td style="text-align:right;">
+57900
+</td>
+<td style="text-align:right;">
+57900
+</td>
+<td style="text-align:right;">
+57700
+</td>
+<td style="text-align:right;">
+57600
+</td>
+<td style="text-align:right;">
+57500
+</td>
+<td style="text-align:right;">
+57800
+</td>
+<td style="text-align:right;">
+58000
+</td>
+<td style="text-align:right;">
+58000
+</td>
+<td style="text-align:right;">
+57900
+</td>
+<td style="text-align:right;">
+57800
+</td>
+<td style="text-align:right;">
+57800
+</td>
+<td style="text-align:right;">
+58000
+</td>
+<td style="text-align:right;">
+58500
+</td>
+<td style="text-align:right;">
+58700
+</td>
+<td style="text-align:right;">
+59000
+</td>
+<td style="text-align:right;">
+59200
+</td>
+<td style="text-align:right;">
+59300
+</td>
+<td style="text-align:right;">
+59500
+</td>
+<td style="text-align:right;">
+59900
+</td>
+<td style="text-align:right;">
+60300
+</td>
+<td style="text-align:right;">
+60400
+</td>
+<td style="text-align:right;">
+60300
+</td>
+<td style="text-align:right;">
+60300
+</td>
+<td style="text-align:right;">
+60000
+</td>
+<td style="text-align:right;">
+59500
+</td>
+<td style="text-align:right;">
+59400
+</td>
+<td style="text-align:right;">
+59800
+</td>
+<td style="text-align:right;">
+59900
+</td>
+<td style="text-align:right;">
+59700
+</td>
+<td style="text-align:right;">
+59500
+</td>
+<td style="text-align:right;">
+59400
+</td>
+<td style="text-align:right;">
+59500
+</td>
+<td style="text-align:right;">
+59700
+</td>
+<td style="text-align:right;">
+59700
+</td>
+<td style="text-align:right;">
+59200
+</td>
+<td style="text-align:right;">
+58700
+</td>
+<td style="text-align:right;">
+58400
+</td>
+<td style="text-align:right;">
+57800
+</td>
+<td style="text-align:right;">
+57000
+</td>
+<td style="text-align:right;">
+56700
+</td>
+<td style="text-align:right;">
+56800
+</td>
+<td style="text-align:right;">
+56600
+</td>
+<td style="text-align:right;">
+56500
+</td>
+<td style="text-align:right;">
+56500
+</td>
+<td style="text-align:right;">
+56600
+</td>
+<td style="text-align:right;">
+56700
+</td>
+<td style="text-align:right;">
+56600
+</td>
+<td style="text-align:right;">
+56700
+</td>
+<td style="text-align:right;">
+57000
+</td>
+<td style="text-align:right;">
+57300
+</td>
+<td style="text-align:right;">
+57300
+</td>
+<td style="text-align:right;">
+57300
+</td>
+<td style="text-align:right;">
+57100
+</td>
+<td style="text-align:right;">
+56900
+</td>
+<td style="text-align:right;">
+56900
+</td>
+<td style="text-align:right;">
+57000
+</td>
+<td style="text-align:right;">
+56700
+</td>
+<td style="text-align:right;">
+56700
+</td>
+<td style="text-align:right;">
+57000
+</td>
+<td style="text-align:right;">
+57400
+</td>
+<td style="text-align:right;">
+57700
+</td>
+<td style="text-align:right;">
+58000
+</td>
+<td style="text-align:right;">
+58300
+</td>
+<td style="text-align:right;">
+58600
+</td>
+<td style="text-align:right;">
+58800
+</td>
+<td style="text-align:right;">
+59100
+</td>
+<td style="text-align:right;">
+59500
+</td>
+<td style="text-align:right;">
+60200
+</td>
+<td style="text-align:right;">
+61100
+</td>
+<td style="text-align:right;">
+61700
+</td>
+<td style="text-align:right;">
+62400
+</td>
+<td style="text-align:right;">
+63100
+</td>
+<td style="text-align:right;">
+63600
+</td>
+<td style="text-align:right;">
+63800
+</td>
+<td style="text-align:right;">
+64400
+</td>
+<td style="text-align:right;">
+64900
+</td>
+<td style="text-align:right;">
+65100
+</td>
+<td style="text-align:right;">
+65200
+</td>
+<td style="text-align:right;">
+65300
+</td>
+<td style="text-align:right;">
+65600
+</td>
+<td style="text-align:right;">
+66300
+</td>
+<td style="text-align:right;">
+67100
+</td>
+<td style="text-align:right;">
+67900
+</td>
+<td style="text-align:right;">
+68800
+</td>
+<td style="text-align:right;">
+69600
+</td>
+<td style="text-align:right;">
+70600
+</td>
+<td style="text-align:right;">
+71500
+</td>
+<td style="text-align:right;">
+72100
+</td>
+<td style="text-align:right;">
+72600
+</td>
+<td style="text-align:right;">
+73400
+</td>
+<td style="text-align:right;">
+74200
+</td>
+<td style="text-align:right;">
+74500
+</td>
+<td style="text-align:right;">
+75000
+</td>
+<td style="text-align:right;">
+75700
+</td>
+<td style="text-align:right;">
+76400
+</td>
+<td style="text-align:right;">
+77100
+</td>
+<td style="text-align:right;">
+77700
+</td>
+<td style="text-align:right;">
+78100
+</td>
+<td style="text-align:right;">
+78700
+</td>
+<td style="text-align:right;">
+79600
+</td>
+<td style="text-align:right;">
+80600
+</td>
+<td style="text-align:right;">
+81500
+</td>
+<td style="text-align:right;">
+82300
+</td>
+<td style="text-align:right;">
+83200
+</td>
+<td style="text-align:right;">
+83900
+</td>
+<td style="text-align:right;">
+84400
+</td>
+<td style="text-align:right;">
+84300
+</td>
+<td style="text-align:right;">
+84400
+</td>
+<td style="text-align:right;">
+85200
+</td>
+<td style="text-align:right;">
+86100
+</td>
+<td style="text-align:right;">
+86800
+</td>
+<td style="text-align:right;">
+87400
+</td>
+<td style="text-align:right;">
+87700
+</td>
+<td style="text-align:right;">
+87800
+</td>
+<td style="text-align:right;">
+88300
+</td>
+<td style="text-align:right;">
+88800
+</td>
+<td style="text-align:right;">
+88500
+</td>
+<td style="text-align:right;">
+87900
+</td>
+<td style="text-align:right;">
+87500
+</td>
+<td style="text-align:right;">
+86600
+</td>
+<td style="text-align:right;">
+85500
+</td>
+<td style="text-align:right;">
+84600
+</td>
+<td style="text-align:right;">
+84200
+</td>
+<td style="text-align:right;">
+83900
+</td>
+<td style="text-align:right;">
+83600
+</td>
+<td style="text-align:right;">
+83400
+</td>
+<td style="text-align:right;">
+83500
+</td>
+<td style="text-align:right;">
+84100
+</td>
+<td style="text-align:right;">
+84600
+</td>
+<td style="text-align:right;">
+84600
+</td>
+<td style="text-align:right;">
+84700
+</td>
+<td style="text-align:right;">
+84600
+</td>
+<td style="text-align:right;">
+84600
+</td>
+<td style="text-align:right;">
+85100
+</td>
+<td style="text-align:right;">
+85500
+</td>
+<td style="text-align:right;">
+85800
+</td>
+<td style="text-align:right;">
+86600
+</td>
+<td style="text-align:right;">
+87600
+</td>
+<td style="text-align:right;">
+86500
+</td>
+<td style="text-align:right;">
+84200
+</td>
+<td style="text-align:right;">
+83300
+</td>
+<td style="text-align:right;">
+83800
+</td>
+<td style="text-align:right;">
+83800
+</td>
+<td style="text-align:right;">
+83600
+</td>
+<td style="text-align:right;">
+83600
+</td>
+<td style="text-align:right;">
+83400
+</td>
+<td style="text-align:right;">
+82900
+</td>
+<td style="text-align:right;">
+82400
+</td>
+<td style="text-align:right;">
+82200
+</td>
+<td style="text-align:right;">
+82100
+</td>
+<td style="text-align:right;">
+82300
+</td>
+<td style="text-align:right;">
+82800
+</td>
+<td style="text-align:right;">
+82900
+</td>
+<td style="text-align:right;">
+82600
+</td>
+<td style="text-align:right;">
+82700
+</td>
+<td style="text-align:right;">
+83100
+</td>
+<td style="text-align:right;">
+83300
+</td>
+<td style="text-align:right;">
+83100
+</td>
+<td style="text-align:right;">
+82800
+</td>
+<td style="text-align:right;">
+82500
+</td>
+<td style="text-align:right;">
+82300
+</td>
+<td style="text-align:right;">
+82200
+</td>
+<td style="text-align:right;">
+82300
+</td>
+<td style="text-align:right;">
+82200
+</td>
+<td style="text-align:right;">
+81900
+</td>
+<td style="text-align:right;">
+81700
+</td>
+<td style="text-align:right;">
+82100
+</td>
+<td style="text-align:right;">
+82600
+</td>
+<td style="text-align:right;">
+82900
+</td>
+<td style="text-align:right;">
+83000
+</td>
+<td style="text-align:right;">
+83000
+</td>
+<td style="text-align:right;">
+82900
+</td>
+<td style="text-align:right;">
+82100
+</td>
+<td style="text-align:right;">
+81200
+</td>
+<td style="text-align:right;">
+80800
+</td>
+<td style="text-align:right;">
+80700
+</td>
+<td style="text-align:right;">
+81200
+</td>
+<td style="text-align:right;">
+81800
+</td>
+<td style="text-align:right;">
+81800
+</td>
+<td style="text-align:right;">
+81400
+</td>
+<td style="text-align:right;">
+81400
+</td>
+<td style="text-align:right;">
+81500
+</td>
+<td style="text-align:right;">
+81900
+</td>
+<td style="text-align:right;">
+82000
+</td>
+<td style="text-align:right;">
+81900
+</td>
+<td style="text-align:right;">
+81900
+</td>
+<td style="text-align:right;">
+82100
+</td>
+<td style="text-align:right;">
+82100
+</td>
+<td style="text-align:right;">
+81500
+</td>
+<td style="text-align:right;">
+80800
+</td>
+<td style="text-align:right;">
+80300
+</td>
+<td style="text-align:right;">
+80100
+</td>
+<td style="text-align:right;">
+80100
+</td>
+<td style="text-align:right;">
+80700
+</td>
+<td style="text-align:right;">
+81200
+</td>
+<td style="text-align:right;">
+81700
+</td>
+<td style="text-align:right;">
+81900
+</td>
+<td style="text-align:right;">
+81700
+</td>
+<td style="text-align:right;">
+81500
+</td>
+<td style="text-align:right;">
+81700
+</td>
+<td style="text-align:right;">
+81700
+</td>
+<td style="text-align:right;">
+80900
+</td>
+<td style="text-align:right;">
+81000
+</td>
+<td style="text-align:right;">
+81500
+</td>
+<td style="text-align:right;">
+81400
+</td>
+<td style="text-align:right;">
+80500
+</td>
+<td style="text-align:right;">
+80000
+</td>
+<td style="text-align:right;">
+80100
+</td>
+<td style="text-align:right;">
+80500
+</td>
+<td style="text-align:right;">
+80800
+</td>
+<td style="text-align:right;">
+81400
+</td>
+<td style="text-align:right;">
+82300
+</td>
+<td style="text-align:right;">
+82600
+</td>
+<td style="text-align:right;">
+82600
+</td>
+<td style="text-align:right;">
+82500
+</td>
+<td style="text-align:right;">
+82500
+</td>
+<td style="text-align:right;">
+82600
+</td>
+<td style="text-align:right;">
+82700
+</td>
+<td style="text-align:right;">
+82600
+</td>
+<td style="text-align:right;">
+82400
+</td>
+<td style="text-align:right;">
+82300
+</td>
+<td style="text-align:right;">
+82400
+</td>
+<td style="text-align:right;">
+82300
+</td>
+<td style="text-align:right;">
+82500
+</td>
+<td style="text-align:right;">
+83200
+</td>
+<td style="text-align:right;">
+83900
+</td>
+<td style="text-align:right;">
+84100
+</td>
+<td style="text-align:right;">
+83900
+</td>
+<td style="text-align:right;">
+83700
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<pre class="r"><code>kable(airbnb_dt[1:2,],format = &#39;html&#39;,col.names = colnames(airbnb_dt),caption = &quot;Airbnb (Revenue) dataset&quot;) %&gt;%
+  kable_styling(bootstrap_options = &quot;striped&quot;) %&gt;%
+  scroll_box(width=&quot;100%&quot;)</code></pre>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+<caption>
+Airbnb (Revenue) dataset
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+id
+</th>
+<th style="text-align:left;">
+listing_url
+</th>
+<th style="text-align:right;">
+scrape_id
+</th>
+<th style="text-align:left;">
+last_scraped
+</th>
+<th style="text-align:left;">
+name
+</th>
+<th style="text-align:left;">
+summary
+</th>
+<th style="text-align:left;">
+space
+</th>
+<th style="text-align:left;">
+description
+</th>
+<th style="text-align:left;">
+experiences_offered
+</th>
+<th style="text-align:left;">
+neighborhood_overview
+</th>
+<th style="text-align:left;">
+notes
+</th>
+<th style="text-align:left;">
+transit
+</th>
+<th style="text-align:left;">
+access
+</th>
+<th style="text-align:left;">
+interaction
+</th>
+<th style="text-align:left;">
+house_rules
+</th>
+<th style="text-align:left;">
+thumbnail_url
+</th>
+<th style="text-align:left;">
+medium_url
+</th>
+<th style="text-align:left;">
+picture_url
+</th>
+<th style="text-align:left;">
+xl_picture_url
+</th>
+<th style="text-align:right;">
+host_id
+</th>
+<th style="text-align:left;">
+host_url
+</th>
+<th style="text-align:left;">
+host_name
+</th>
+<th style="text-align:left;">
+host_since
+</th>
+<th style="text-align:left;">
+host_location
+</th>
+<th style="text-align:left;">
+host_about
+</th>
+<th style="text-align:left;">
+host_response_time
+</th>
+<th style="text-align:left;">
+host_response_rate
+</th>
+<th style="text-align:left;">
+host_acceptance_rate
+</th>
+<th style="text-align:left;">
+host_is_superhost
+</th>
+<th style="text-align:left;">
+host_thumbnail_url
+</th>
+<th style="text-align:left;">
+host_picture_url
+</th>
+<th style="text-align:left;">
+host_neighbourhood
+</th>
+<th style="text-align:right;">
+host_listings_count
+</th>
+<th style="text-align:right;">
+host_total_listings_count
+</th>
+<th style="text-align:left;">
+host_verifications
+</th>
+<th style="text-align:left;">
+host_has_profile_pic
+</th>
+<th style="text-align:left;">
+host_identity_verified
+</th>
+<th style="text-align:left;">
+street
+</th>
+<th style="text-align:left;">
+neighbourhood
+</th>
+<th style="text-align:left;">
+neighbourhood_cleansed
+</th>
+<th style="text-align:left;">
+neighbourhood_group_cleansed
+</th>
+<th style="text-align:left;">
+city
+</th>
+<th style="text-align:left;">
+state
+</th>
+<th style="text-align:left;">
+zipcode
+</th>
+<th style="text-align:left;">
+market
+</th>
+<th style="text-align:left;">
+smart_location
+</th>
+<th style="text-align:left;">
+country_code
+</th>
+<th style="text-align:left;">
+country
+</th>
+<th style="text-align:right;">
+latitude
+</th>
+<th style="text-align:right;">
+longitude
+</th>
+<th style="text-align:left;">
+is_location_exact
+</th>
+<th style="text-align:left;">
+property_type
+</th>
+<th style="text-align:left;">
+room_type
+</th>
+<th style="text-align:right;">
+accommodates
+</th>
+<th style="text-align:right;">
+bathrooms
+</th>
+<th style="text-align:right;">
+bedrooms
+</th>
+<th style="text-align:right;">
+beds
+</th>
+<th style="text-align:left;">
+bed_type
+</th>
+<th style="text-align:left;">
+amenities
+</th>
+<th style="text-align:right;">
+square_feet
+</th>
+<th style="text-align:left;">
+price
+</th>
+<th style="text-align:left;">
+weekly_price
+</th>
+<th style="text-align:left;">
+monthly_price
+</th>
+<th style="text-align:left;">
+security_deposit
+</th>
+<th style="text-align:left;">
+cleaning_fee
+</th>
+<th style="text-align:right;">
+guests_included
+</th>
+<th style="text-align:left;">
+extra_people
+</th>
+<th style="text-align:right;">
+minimum_nights
+</th>
+<th style="text-align:right;">
+maximum_nights
+</th>
+<th style="text-align:left;">
+calendar_updated
+</th>
+<th style="text-align:left;">
+has_availability
+</th>
+<th style="text-align:right;">
+availability_30
+</th>
+<th style="text-align:right;">
+availability_60
+</th>
+<th style="text-align:right;">
+availability_90
+</th>
+<th style="text-align:right;">
+availability_365
+</th>
+<th style="text-align:left;">
+calendar_last_scraped
+</th>
+<th style="text-align:right;">
+number_of_reviews
+</th>
+<th style="text-align:left;">
+first_review
+</th>
+<th style="text-align:left;">
+last_review
+</th>
+<th style="text-align:right;">
+review_scores_rating
+</th>
+<th style="text-align:right;">
+review_scores_accuracy
+</th>
+<th style="text-align:right;">
+review_scores_cleanliness
+</th>
+<th style="text-align:right;">
+review_scores_checkin
+</th>
+<th style="text-align:right;">
+review_scores_communication
+</th>
+<th style="text-align:right;">
+review_scores_location
+</th>
+<th style="text-align:right;">
+review_scores_value
+</th>
+<th style="text-align:left;">
+requires_license
+</th>
+<th style="text-align:left;">
+license
+</th>
+<th style="text-align:left;">
+jurisdiction_names
+</th>
+<th style="text-align:left;">
+instant_bookable
+</th>
+<th style="text-align:left;">
+cancellation_policy
+</th>
+<th style="text-align:left;">
+require_guest_profile_picture
+</th>
+<th style="text-align:left;">
+require_guest_phone_verification
+</th>
+<th style="text-align:right;">
+calculated_host_listings_count
+</th>
+<th style="text-align:right;">
+reviews_per_month
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+7949480
+</td>
+<td style="text-align:left;">
+<a href="https://www.airbnb.com/rooms/7949480" class="uri">https://www.airbnb.com/rooms/7949480</a>
+</td>
+<td style="text-align:right;">
+0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009965552
+</td>
+<td style="text-align:left;">
+2017-05-03
+</td>
+<td style="text-align:left;">
+City Island Sanctuary relaxing BR &amp; Bath w Parking
+</td>
+<td style="text-align:left;">
+Come relax on City Island in our quiet guest room w/adjacent private bath. Enjoy a Continental Breakfast served by Didier at your table downstairs. Walk to restaurants, shops, the park or the beach. Park one car on our private driveway. If you are looking to explore Manhattan you can take the 29 bus to the nearest subway number 6. Or you can take the BXM8 express bus at the Pelham Bay Subway station which goes directly into Manhattan. There are also green taxis at the subway.
+</td>
+<td style="text-align:left;">
+On parle franÃ§ais et anglais, (lire FranÃ§ais ci-dessous). I am a native New Yorker and Didier grew up in Biarritz, France. Our three friendly cats do not go into the room. The bathroom is yours during your entire stay (we have our own en suite). We will provide a Continental breakfast with fresh bread butter &amp; jams, fresh squeezed orange juice or fresh fruit, tea or coffee served by my French husband who is a talented cook! You might even get a special treat of canelÃ©s de Bordeaux, banana bread or home made scones! City Island Sanctuary relaxing BR &amp; Bath w Parking PiÃ¨ce calme, ensoleillÃ©e et Ã  proximitÃ© d’une salle de bain privÃ©e. Marchez jusqu, au parc ou Ã  la plage. On peut aller Ã  pied Ã  quelques restaurants, une petite supermarchÃ©, petits magasins et le City Island Nautical Museum. Prenez le metro ou le bus express Ã  Manhattan (une heure et demi Ã  centre-ville. Les chats sont en rÃ©sidence, mais ne vont pas dans la chambre. Cable TV avec TV5 Monde, lecteur DVD, Wi-fi . Petit
+</td>
+<td style="text-align:left;">
+Come relax on City Island in our quiet guest room w/adjacent private bath. Enjoy a Continental Breakfast served by Didier at your table downstairs. Walk to restaurants, shops, the park or the beach. Park one car on our private driveway. If you are looking to explore Manhattan you can take the 29 bus to the nearest subway number 6. Or you can take the BXM8 express bus at the Pelham Bay Subway station which goes directly into Manhattan. There are also green taxis at the subway. On parle franÃ§ais et anglais, (lire FranÃ§ais ci-dessous). I am a native New Yorker and Didier grew up in Biarritz, France. Our three friendly cats do not go into the room. The bathroom is yours during your entire stay (we have our own en suite). We will provide a Continental breakfast with fresh bread butter &amp; jams, fresh squeezed orange juice or fresh fruit, tea or coffee served by my French husband who is a talented cook! You might even get a special treat of canelÃ©s de Bordeaux, banana bread or home mad
+</td>
+<td style="text-align:left;">
+none
+</td>
+<td style="text-align:left;">
+City Island is a unique sanctuary in New York City’s the Bronx. It boasts many wonderful seafood restaurants, two great pubs and the only true French bistro in the borough. We are walking distance to the largest park in the City of New York, Pelham Bay Park and also to lovely Orchard Beach, the Riviera of the Bronx!
+</td>
+<td style="text-align:left;">
+We are walkable to Pelham Park which is the largest park in NYC. It has picnic areas, tennis courts, horseback riding, Orchard Beach and a lovely rocky coast. Check out their website for all there is to do!
+</td>
+<td style="text-align:left;">
+On the island, you can walk to everything. A local bus will take you to shopping at the Mall at Bay Plaza near Coop City. If you want to go to Manhattan you take the local 29 bus to the subway No. 6 to Manhattan. The local bus does not run after midnight but there are green taxis at the subway station. There is an express bus early in the morning which goes directly from the island to Manhattan. It will take at least one hour to get to midtown by subway and a bit longer on the express bus depending upon traffic.
+</td>
+<td style="text-align:left;">
+Feel free to enjoy our large backyard in season, our downstairs large recreation area with TV, WIFI. Walk to the local beaches for the view or a dip. Please, no food or drinks except water in the guest bedroom.
+</td>
+<td style="text-align:left;">
+We speak fluent French and English. We will be in residence during your stay to help you with recommendations for a real New York experience or a unique City Island French experience. But, we do respect your privacy!
+</td>
+<td style="text-align:left;">
+No extra guests or visitors who are not in the reservation. Maximum 2 registered guests only. No late check ins or check outs. Please, no food or drinks in the guest bedroom except water. No smoking on the property. It’s a residential neighborhood so we keep it quiet after 10. Please only inquire about booking for yourself, we will not accept 3rd party inquiries.
+</td>
+<td style="text-align:left;">
+<a href="https://a0.muscache.com/im/pictures/001d1cb0-6ef2-4074-bd39-e486ee58d00f.jpg?aki_policy=small" class="uri">https://a0.muscache.com/im/pictures/001d1cb0-6ef2-4074-bd39-e486ee58d00f.jpg?aki_policy=small</a>
+</td>
+<td style="text-align:left;">
+<a href="https://a0.muscache.com/im/pictures/001d1cb0-6ef2-4074-bd39-e486ee58d00f.jpg?aki_policy=medium" class="uri">https://a0.muscache.com/im/pictures/001d1cb0-6ef2-4074-bd39-e486ee58d00f.jpg?aki_policy=medium</a>
+</td>
+<td style="text-align:left;">
+<a href="https://a0.muscache.com/im/pictures/001d1cb0-6ef2-4074-bd39-e486ee58d00f.jpg?aki_policy=large" class="uri">https://a0.muscache.com/im/pictures/001d1cb0-6ef2-4074-bd39-e486ee58d00f.jpg?aki_policy=large</a>
+</td>
+<td style="text-align:left;">
+<a href="https://a0.muscache.com/im/pictures/001d1cb0-6ef2-4074-bd39-e486ee58d00f.jpg?aki_policy=x_large" class="uri">https://a0.muscache.com/im/pictures/001d1cb0-6ef2-4074-bd39-e486ee58d00f.jpg?aki_policy=x_large</a>
+</td>
+<td style="text-align:right;">
+119445
+</td>
+<td style="text-align:left;">
+<a href="https://www.airbnb.com/users/show/119445" class="uri">https://www.airbnb.com/users/show/119445</a>
+</td>
+<td style="text-align:left;">
+Linda &amp; Didier
+</td>
+<td style="text-align:left;">
+2010-05-06
+</td>
+<td style="text-align:left;">
+New York, New York, United States
+</td>
+<td style="text-align:left;">
+I am a designer, former instructor at a design school and my husband is a talented French cook (he is from France). He is also an artist, writer and a Zen practitioner. We are sociable but respectful of your privacy.<br />
+I am a native New Yorker having relocated back to NYC from So Cal because I Love New York! We are the only French/American Airbnb in the Bronx!
+</td>
+<td style="text-align:left;">
+within an hour
+</td>
+<td style="text-align:left;">
+100%
+</td>
+<td style="text-align:left;">
+N/A
+</td>
+<td style="text-align:left;">
+t
+</td>
+<td style="text-align:left;">
+<a href="https://a0.muscache.com/im/pictures/2de30fe4-bebe-4145-a86a-b8a8a970078d.jpg?aki_policy=profile_small" class="uri">https://a0.muscache.com/im/pictures/2de30fe4-bebe-4145-a86a-b8a8a970078d.jpg?aki_policy=profile_small</a>
+</td>
+<td style="text-align:left;">
+<a href="https://a0.muscache.com/im/pictures/2de30fe4-bebe-4145-a86a-b8a8a970078d.jpg?aki_policy=profile_x_medium" class="uri">https://a0.muscache.com/im/pictures/2de30fe4-bebe-4145-a86a-b8a8a970078d.jpg?aki_policy=profile_x_medium</a>
+</td>
+<td style="text-align:left;">
+City Island
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+[‘email’, ‘phone’, ‘reviews’, ‘jumio’]
+</td>
+<td style="text-align:left;">
+t
+</td>
+<td style="text-align:left;">
+t
+</td>
+<td style="text-align:left;">
+City Island, Bronx, NY 10464, United States
+</td>
+<td style="text-align:left;">
+City Island
+</td>
+<td style="text-align:left;">
+City Island
+</td>
+<td style="text-align:left;">
+Bronx
+</td>
+<td style="text-align:left;">
+Bronx
+</td>
+<td style="text-align:left;">
+NY
+</td>
+<td style="text-align:left;">
+10464
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:left;">
+Bronx, NY
+</td>
+<td style="text-align:left;">
+US
+</td>
+<td style="text-align:left;">
+United States
+</td>
+<td style="text-align:right;">
+40.85205
+</td>
+<td style="text-align:right;">
+-73.78868
+</td>
+<td style="text-align:left;">
+t
+</td>
+<td style="text-align:left;">
+House
+</td>
+<td style="text-align:left;">
+Private room
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+Real Bed
+</td>
+<td style="text-align:left;">
+{“”Cable TV“”,“”Wireless Internet“”,“”Air conditioning“”,“”Free parking on premises“”,Breakfast,“”Pets live on this property“”,Cat(s),“”Indoor fireplace“”,Heating,“”Smoke detector“”,“”Carbon monoxide detector“”,“”Fire extinguisher“”,Essentials,Shampoo,Hangers,“”Hair dryer“”,Iron,“”translation missing: en.hosting_amenity_49“”,“”translation missing: en.hosting_amenity_50“”}
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+$99.00
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+$100.00
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+$20.00
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:left;">
+yesterday
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+24
+</td>
+<td style="text-align:right;">
+54
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+170
+</td>
+<td style="text-align:left;">
+2017-05-03
+</td>
+<td style="text-align:right;">
+25
+</td>
+<td style="text-align:left;">
+2016-01-18
+</td>
+<td style="text-align:left;">
+2017-04-23
+</td>
+<td style="text-align:right;">
+100
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:left;">
+f
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+f
+</td>
+<td style="text-align:left;">
+moderate
+</td>
+<td style="text-align:left;">
+t
+</td>
+<td style="text-align:left;">
+t
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1.59
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+16042478
+</td>
+<td style="text-align:left;">
+<a href="https://www.airbnb.com/rooms/16042478" class="uri">https://www.airbnb.com/rooms/16042478</a>
+</td>
+<td style="text-align:right;">
+0.00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009965552
+</td>
+<td style="text-align:left;">
+2017-05-04
+</td>
+<td style="text-align:left;">
+WATERFRONT STUDIO APARTMENT
+</td>
+<td style="text-align:left;">
+My place is close to Sea Shore. Youâll love my place because of the coziness, the location, the views, and the people. My place is good for couples, solo adventurers, business travelers, and families (with kids).
+</td>
+<td style="text-align:left;">
+(URL HIDDEN)
+</td>
+<td style="text-align:left;">
+My place is close to Sea Shore. Youâll love my place because of the coziness, the location, the views, and the people. My place is good for couples, solo adventurers, business travelers, and families (with kids). (URL HIDDEN) public transport from Grand Central, NYC or from JFK, Laguadia is about 30 minutes away. (URL HIDDEN) Fine sea food restaurant, bars and night clubs all within walking distance, Sailing, fishing, canoeing, marinas and just 30 minutes away from central NYC or major airports like JFK or LaGuardia airports. Enjoy NYC
+</td>
+<td style="text-align:left;">
+none
+</td>
+<td style="text-align:left;">
+(URL HIDDEN)
+</td>
+<td style="text-align:left;">
+Fine sea food restaurant, bars and night clubs all within walking distance, Sailing, fishing, canoeing, marinas and just 30 minutes away from central NYC or major airports like JFK or LaGuardia airports. Enjoy NYC
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+public transport from Grand Central, NYC or from JFK, Laguadia is about 30 minutes away.
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+<a href="https://a0.muscache.com/im/pictures/bb5bc3c4-3eb2-4b90-a2c8-28401c6eabcc.jpg?aki_policy=small" class="uri">https://a0.muscache.com/im/pictures/bb5bc3c4-3eb2-4b90-a2c8-28401c6eabcc.jpg?aki_policy=small</a>
+</td>
+<td style="text-align:left;">
+<a href="https://a0.muscache.com/im/pictures/bb5bc3c4-3eb2-4b90-a2c8-28401c6eabcc.jpg?aki_policy=medium" class="uri">https://a0.muscache.com/im/pictures/bb5bc3c4-3eb2-4b90-a2c8-28401c6eabcc.jpg?aki_policy=medium</a>
+</td>
+<td style="text-align:left;">
+<a href="https://a0.muscache.com/im/pictures/bb5bc3c4-3eb2-4b90-a2c8-28401c6eabcc.jpg?aki_policy=large" class="uri">https://a0.muscache.com/im/pictures/bb5bc3c4-3eb2-4b90-a2c8-28401c6eabcc.jpg?aki_policy=large</a>
+</td>
+<td style="text-align:left;">
+<a href="https://a0.muscache.com/im/pictures/bb5bc3c4-3eb2-4b90-a2c8-28401c6eabcc.jpg?aki_policy=x_large" class="uri">https://a0.muscache.com/im/pictures/bb5bc3c4-3eb2-4b90-a2c8-28401c6eabcc.jpg?aki_policy=x_large</a>
+</td>
+<td style="text-align:right;">
+9117975
+</td>
+<td style="text-align:left;">
+<a href="https://www.airbnb.com/users/show/9117975" class="uri">https://www.airbnb.com/users/show/9117975</a>
+</td>
+<td style="text-align:left;">
+Collins
+</td>
+<td style="text-align:left;">
+2013-09-29
+</td>
+<td style="text-align:left;">
+New York, New York, United States
+</td>
+<td style="text-align:left;">
+I am married with 3 children and 2 grandkid. Family and community is the most important thing besides God. I am a Tax consultant and a I have travelled to a few countries including Germany, France, Holland, Netherlands, England in Europe. I have also travel extensively within the Caribbean and Mexico so I appreciate the importance of comfortable and affordable lodging when one is away.
+</td>
+<td style="text-align:left;">
+a few days or more
+</td>
+<td style="text-align:left;">
+0%
+</td>
+<td style="text-align:left;">
+N/A
+</td>
+<td style="text-align:left;">
+f
+</td>
+<td style="text-align:left;">
+<a href="https://a0.muscache.com/im/users/9117975/profile_pic/1423794446/original.jpg?aki_policy=profile_small" class="uri">https://a0.muscache.com/im/users/9117975/profile_pic/1423794446/original.jpg?aki_policy=profile_small</a>
+</td>
+<td style="text-align:left;">
+<a href="https://a0.muscache.com/im/users/9117975/profile_pic/1423794446/original.jpg?aki_policy=profile_x_medium" class="uri">https://a0.muscache.com/im/users/9117975/profile_pic/1423794446/original.jpg?aki_policy=profile_x_medium</a>
+</td>
+<td style="text-align:left;">
+City Island
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+[‘phone’, ‘facebook’]
+</td>
+<td style="text-align:left;">
+t
+</td>
+<td style="text-align:left;">
+f
+</td>
+<td style="text-align:left;">
+City Island, Bronx, NY 10464, United States
+</td>
+<td style="text-align:left;">
+City Island
+</td>
+<td style="text-align:left;">
+City Island
+</td>
+<td style="text-align:left;">
+Bronx
+</td>
+<td style="text-align:left;">
+Bronx
+</td>
+<td style="text-align:left;">
+NY
+</td>
+<td style="text-align:left;">
+10464
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:left;">
+Bronx, NY
+</td>
+<td style="text-align:left;">
+US
+</td>
+<td style="text-align:left;">
+United States
+</td>
+<td style="text-align:right;">
+40.85349
+</td>
+<td style="text-align:right;">
+-73.78861
+</td>
+<td style="text-align:left;">
+t
+</td>
+<td style="text-align:left;">
+Apartment
+</td>
+<td style="text-align:left;">
+Private room
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+Real Bed
+</td>
+<td style="text-align:left;">
+{TV,Internet,“”Wireless Internet“”,“”Air conditioning“”,Kitchen,Heating,“”Family/kid friendly“”,“”Smoke detector“”,“”Carbon monoxide detector“”,“”First aid kit“”,“”Fire extinguisher“”,Essentials,Shampoo,Hangers,“”Hair dryer“”,Iron}
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+$200.00
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+$0.00
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:left;">
+6 months ago
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:right;">
+30
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+90
+</td>
+<td style="text-align:right;">
+180
+</td>
+<td style="text-align:left;">
+2017-05-04
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:left;">
+f
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+t
+</td>
+<td style="text-align:left;">
+flexible
+</td>
+<td style="text-align:left;">
+f
+</td>
+<td style="text-align:left;">
+f
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="data-cleaning" class="section level3">
+<h3>Data Cleaning</h3>
+<ul>
+<li>Based on observations on these two datasets, it appears that both datasets have many variables that may not be useful for our analysis, it makes sense to remove them using some common sense approach and will keep only those variables that could be helpful.</li>
+<li>We will look for common data quality issues here for example missing values, duplicate rows, appropriate data type formats etc and finally produce clean dataset.</li>
+<li>We will first start by merging these two datsets using the column <code>zipcode</code> from airbnb and <code>RegionName</code> from zillow dataset.</li>
+<li>Since company has already concluded that two bedrooms properties are most profitable, we will apply this filter on our merged dataset.</li>
+<li>Another assumption made in the problem statement and instructions that time value of money discount rate is 0% i.e. the value of currency in the future will be same as today. Keeping this in mind, we have given property rate starting from May 1996 till June 2017. The rates from past will not make any difference therefore there is no need to keep these in this analysis. We will keep data from last 18 months from June 2017 and will drop variables that are older than 18 months back from June 2017.</li>
+<li>At last, variables that are not relevant for this analysis will be removed from the datset to prepare final and clean dataset to work with.</li>
+</ul>
+<pre class="r"><code>#first convert zipcode to interger type
+airbnb_dt$zipcode &lt;- as.integer(airbnb_dt$zipcode)
+
+#merge both dataset using zipcode 
+merged_dt &lt;- merge(zillow_dt,airbnb_dt,by.x=&quot;RegionName&quot;,by.y=&quot;zipcode&quot;)
+
+#filter datase based on 2 bedrooms
+merged_dt &lt;- merged_dt %&gt;%
+                     filter(bedrooms == 2)
+
+#remove time series variables older than 18 months from June 2017 i.e. keep only from Jan 2016 - June 2017
+merged_dt &lt;- merged_dt[,-c(8:244)]
+
+#now lets remove the column that are not relevant to this analysis
+vars_to_drop &lt;- c(
+                  &quot;City&quot;,
+                  &quot;State&quot;,
+                  &quot;Metro&quot;,
+                  &quot;listing_url&quot;,
+                  &quot;scrape_id&quot;,
+                  &quot;last_scraped&quot;,
+                  &quot;experiences_offered&quot;,
+                  &quot;neighborhood_overview&quot;,
+                  &quot;notes&quot;,&quot;transit&quot;,
+                  &quot;access&quot;,
+                  &quot;interaction&quot;,
+                  &quot;house_rules&quot;,
+                  &quot;thumbnail_url&quot;,
+                  &quot;medium_url&quot;,
+                  &quot;picture_url&quot;,
+                  &quot;xl_picture_url&quot;,
+                  &quot;host_id&quot;,
+                  &quot;host_url&quot;,
+                  &quot;host_name&quot;,
+                  &quot;host_since&quot;,
+                  &quot;host_location&quot;,
+                  &quot;host_about&quot;,
+                  &quot;host_response_time&quot;,
+                  &quot;host_response_rate&quot;,
+                  &quot;host_acceptance_rate&quot;,
+                  &quot;host_is_superhost&quot;,
+                  &quot;host_thumbnail_url&quot;,
+                  &quot;host_picture_url&quot;,
+                  &quot;host_neighbourhood&quot;,
+                  &quot;host_listings_count&quot;,
+                  &quot;host_total_listings_count&quot;,
+                  &quot;host_verifications&quot;,
+                  &quot;host_has_profile_pic&quot;,      
+                  &quot;host_identity_verified&quot;,
+                  &quot;smart_location&quot;,
+                  &quot;country_code&quot;,
+                  &quot;country&quot;,
+                  &quot;name&quot;,
+                  &quot;summary&quot;,
+                  &quot;is_location_exact&quot;,
+                  &quot;bedrooms&quot;,
+                  &quot;beds&quot;,
+                  &quot;bed_type&quot;,
+                  &quot;monthly_price&quot;,
+                  &quot;amenities&quot;,
+                  &quot;security_deposit&quot;,
+                  &quot;cleaning_fee&quot;,
+                  &quot;extra_people&quot;,
+                  &quot;minimum_nights&quot;,
+                  &quot;maximum_nights&quot;,
+                  &quot;calendar_updated&quot;,
+                  &quot;has_availability&quot;,
+                  &quot;calendar_last_scraped&quot;,
+                  &quot;first_review&quot;,
+                  &quot;space&quot;,
+                  &quot;last_review&quot;,
+                  &quot;requires_license&quot;,
+                  &quot;license&quot;,
+                  &quot;jurisdiction_names&quot;,
+                  &quot;instant_bookable&quot;,                       
+                  &quot;require_guest_profile_picture&quot;,
+                  &quot;require_guest_phone_verification&quot;,
+                  &quot;description&quot;,                                     
+                  &quot;calculated_host_listings_count&quot;,
+                  &quot;cancellation_policy&quot;,
+                  &quot;accomodates&quot;,
+                  &quot;bathrooms&quot;,
+                  &quot;square_feet&quot;,
+                  &quot;guests_included&quot;,
+                  &quot;review_scores_accuracy&quot;,
+                  &quot;review_scores_cleanliness&quot;,
+                  &quot;review_scores_checkin&quot;,
+                  &quot;review_scores_communication&quot;,
+                  &quot;review_scores_rating&quot;,
+                  &quot;review_scores_location&quot;,
+                  &quot;reviews_per_month&quot;
+                ) 
+
+merged_dt &lt;- merged_dt[,!(colnames(merged_dt) %in% vars_to_drop)]</code></pre>
+<p>The final dataset contains following columns</p>
+<p>From zillow dataset</p>
+<ul>
+<li>RegionID</li>
+<li>RegionName</li>
+<li>CountyName</li>
+<li>SizeRank</li>
+<li>Time Label variables from “2016-01” to “2017-06” (18 months time period)</li>
+</ul>
+<p>From airbnb dataset</p>
+<ul>
+<li>id</li>
+<li>street</li>
+<li>neighbourhood</li>
+<li>neighbourhood_cleansed</li>
+<li>neighbourhood_group_cleansed</li>
+<li>city</li>
+<li>state</li>
+<li>zipcode</li>
+<li>latitude</li>
+<li>longitude</li>
+<li>property_type</li>
+<li>room_type</li>
+<li>price</li>
+<li>weekly_price</li>
+<li>availability_30</li>
+<li>availability_60</li>
+<li>availability_90</li>
+<li>availability_365</li>
+<li>number_of_reviews</li>
+</ul>
+<p>Now we have our dataset that we want to work with and based on quality of this data, we will make following changes in the dataset</p>
+<ul>
+<li>We will start by checking missing data for each variable.</li>
+<li>We will remove any property listings that are outside NYC area.</li>
+<li>price
+<ul>
+<li>We may remove the observations where there is no <code>price</code> or 0 <code>price</code>. We will also make sure that <code>price</code> is not less than 0.</li>
+<li>Convert price variable to proper format (an integer). Currently it is in character form.</li>
+<li>Remove <code>$</code> sign from the price variable.</li>
+</ul></li>
+<li>RegionName
+<ul>
+<li>Rename <code>RegionName</code> variable to <code>zipcode</code>.</li>
+<li>Make sure that length of <code>zipcode</code> is 5 digits.</li>
+<li>convert this variable to factor type</li>
+</ul></li>
+<li>number_of_reviews
+<ul>
+<li>Replace any <code>NA</code> values with <code>0</code> for <code>number_of_reviews</code> variable</li>
+</ul></li>
+</ul>
+<pre class="r"><code>#check for missing values in any variables in the dataset
+colnames(merged_dt)[apply(is.na(merged_dt), 2, any)]</code></pre>
+<pre><code>## [1] &quot;review_scores_value&quot;</code></pre>
+<pre class="r"><code>#check price variable 
+neg_count &lt;- sapply(merged_dt, function(x) sum(length(which(x &lt; 0))))
+nrow(neg_count[which(neg_count &gt; 0)])  </code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code>#there are no variables with negative value
+ 
+#check datatype for price variable
+class(merged_dt$price)</code></pre>
+<pre><code>## [1] &quot;character&quot;</code></pre>
+<pre class="r"><code>#since it is in character form, we need to chage it to interger
+merged_dt$price &lt;- gsub(&#39;[$,]&#39;,&#39;&#39;,merged_dt$price)
+merged_dt$price &lt;- as.numeric(merged_dt$price)
+
+#rename RegionName to zipcode and convert to factor
+names(merged_dt)[names(merged_dt) == &#39;RegionName&#39;] &lt;- &#39;zipcode&#39;
+merged_dt$zipcode &lt;- as.factor(merged_dt$zipcode)
+
+#replace any missing number_of_review variable with 0 
+merged_dt$number_of_reviews[is.na(merged_dt$number_of_reviews)] &lt;- 0
+
+#is there any duplicate observation in the dataset
+merged_dt[which(duplicated(merged_dt) == TRUE),]</code></pre>
+<pre><code>##  [1] zipcode                      RegionID                    
+##  [3] CountyName                   SizeRank                    
+##  [5] 2016-01                      2016-02                     
+##  [7] 2016-03                      2016-04                     
+##  [9] 2016-05                      2016-06                     
+## [11] 2016-07                      2016-08                     
+## [13] 2016-09                      2016-10                     
+## [15] 2016-11                      2016-12                     
+## [17] 2017-01                      2017-02                     
+## [19] 2017-03                      2017-04                     
+## [21] 2017-05                      2017-06                     
+## [23] id                           street                      
+## [25] neighbourhood                neighbourhood_cleansed      
+## [27] neighbourhood_group_cleansed city                        
+## [29] state                        market                      
+## [31] latitude                     longitude                   
+## [33] property_type                room_type                   
+## [35] accommodates                 price                       
+## [37] weekly_price                 availability_30             
+## [39] availability_60              availability_90             
+## [41] availability_365             number_of_reviews           
+## [43] review_scores_value         
+## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
+<pre class="r"><code>#create final version of dataset
+final_dt &lt;- merged_dt</code></pre>
+<ul>
+<li>There were no duplicate observations present in final dataset.</li>
+<li>We see that <code>review_scores_value</code> has some missing values. We can not simply impute this field. Our first approach would have been to replace missing value with <code>mean</code> value but since this score depends on all the offerings that a host has made available to the guest, we can not simply use <code>mean</code> or value of <code>0</code>. In order to calculate true value we need to know all details about specfic offerings from host which is not available and may require manual observations of the property.</li>
+</ul>
+</div>
+<div id="feature-engineering" class="section level3">
+<h3>Feature Engineering</h3>
+<ul>
+<li>We will now create some new features that are going to be helpful for our analysis. We will start with creating new feature named <code>Mean_Prop_Value</code> which basically is the mean price of the property for given zipcode.</li>
+<li>To properly analyze the cost vs revenue amounts we need to derive new features in our dataset using the information given to us. One of the assumption was made that there will be an occupancy rate of 75% regardless of location. We will use this information to create another feature named <code>Yearly_Prop_Revenue</code>. This is basically how much revenue a given property might generate and how it compares to the cost of properties.</li>
+<li>We will also create a new variable named <code>Breakeven_Period</code> and <code>Mean_Breakeven_Period</code>. <strong>Breakeven Period</strong> is defined as time that net income can cover total cost. In other words how long it will take to make the cost that was made for investment.</li>
+<li>At the end we wil calculate <code>total number of reviews</code> for a given zipcode.</li>
+</ul>
+<pre class="r"><code>#crate new column by calculating means price of the property based on last 18 months of price
+final_dt$Mean_Prop_value &lt;- rowMeans(final_dt[,5:22],na.rm = TRUE) #mean of column from 2016-01 to 2017-06
+
+#create yearly revenue for each property
+occupancy_rate &lt;- 0.75
+final_dt$Yearly_Prop_Revenue &lt;- final_dt$price * occupancy_rate * 365
+
+#calculate mean revenue for each zipcode as well
+setDT(final_dt)[,Mean_Yearly_Prop_Revenue := mean(Yearly_Prop_Revenue), by=zipcode]
+
+#calculate breakeven period for ROI analysis 
+#breakeven point = cost / price 
+final_dt$Breakeven_Period &lt;- final_dt$Mean_Prop_value / final_dt$Yearly_Prop_Revenue
+
+#breakeven point by zipcode
+setDT(final_dt)[,Mean_Breakeven_Period := mean(Breakeven_Period), by=zipcode]
+
+#total number of reviews
+setDT(final_dt)[,Total_Reviews := sum(number_of_reviews), by=zipcode]</code></pre>
+<p>After performing data cleaning operations and feature engineering, here is how our final dataset looks like</p>
+<pre class="r"><code>kable(final_dt[1:5,],format = &#39;html&#39;,col.names = colnames(final_dt),caption = &quot;Final dataset&quot;) %&gt;%
+  kable_styling(bootstrap_options = &quot;striped&quot;) %&gt;%
+  scroll_box(width=&quot;100%&quot;)</code></pre>
+<div style="border: 1px solid #ddd; padding: 5px; overflow-x: scroll; width:100%; ">
+<table class="table table-striped" style="margin-left: auto; margin-right: auto;">
+<caption>
+Final dataset
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+zipcode
+</th>
+<th style="text-align:right;">
+RegionID
+</th>
+<th style="text-align:left;">
+CountyName
+</th>
+<th style="text-align:right;">
+SizeRank
+</th>
+<th style="text-align:right;">
+2016-01
+</th>
+<th style="text-align:right;">
+2016-02
+</th>
+<th style="text-align:right;">
+2016-03
+</th>
+<th style="text-align:right;">
+2016-04
+</th>
+<th style="text-align:right;">
+2016-05
+</th>
+<th style="text-align:right;">
+2016-06
+</th>
+<th style="text-align:right;">
+2016-07
+</th>
+<th style="text-align:right;">
+2016-08
+</th>
+<th style="text-align:right;">
+2016-09
+</th>
+<th style="text-align:right;">
+2016-10
+</th>
+<th style="text-align:right;">
+2016-11
+</th>
+<th style="text-align:right;">
+2016-12
+</th>
+<th style="text-align:right;">
+2017-01
+</th>
+<th style="text-align:right;">
+2017-02
+</th>
+<th style="text-align:right;">
+2017-03
+</th>
+<th style="text-align:right;">
+2017-04
+</th>
+<th style="text-align:right;">
+2017-05
+</th>
+<th style="text-align:right;">
+2017-06
+</th>
+<th style="text-align:right;">
+id
+</th>
+<th style="text-align:left;">
+street
+</th>
+<th style="text-align:left;">
+neighbourhood
+</th>
+<th style="text-align:left;">
+neighbourhood_cleansed
+</th>
+<th style="text-align:left;">
+neighbourhood_group_cleansed
+</th>
+<th style="text-align:left;">
+city
+</th>
+<th style="text-align:left;">
+state
+</th>
+<th style="text-align:left;">
+market
+</th>
+<th style="text-align:right;">
+latitude
+</th>
+<th style="text-align:right;">
+longitude
+</th>
+<th style="text-align:left;">
+property_type
+</th>
+<th style="text-align:left;">
+room_type
+</th>
+<th style="text-align:right;">
+accommodates
+</th>
+<th style="text-align:right;">
+price
+</th>
+<th style="text-align:left;">
+weekly_price
+</th>
+<th style="text-align:right;">
+availability_30
+</th>
+<th style="text-align:right;">
+availability_60
+</th>
+<th style="text-align:right;">
+availability_90
+</th>
+<th style="text-align:right;">
+availability_365
+</th>
+<th style="text-align:right;">
+number_of_reviews
+</th>
+<th style="text-align:right;">
+review_scores_value
+</th>
+<th style="text-align:right;">
+Mean_Prop_value
+</th>
+<th style="text-align:right;">
+Yearly_Prop_Revenue
+</th>
+<th style="text-align:right;">
+Mean_Yearly_Prop_Revenue
+</th>
+<th style="text-align:right;">
+Breakeven_Period
+</th>
+<th style="text-align:right;">
+Mean_Breakeven_Period
+</th>
+<th style="text-align:right;">
+Total_Reviews
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+10003
+</td>
+<td style="text-align:right;">
+61617
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+1932200
+</td>
+<td style="text-align:right;">
+1936700
+</td>
+<td style="text-align:right;">
+1945200
+</td>
+<td style="text-align:right;">
+1935600
+</td>
+<td style="text-align:right;">
+1911200
+</td>
+<td style="text-align:right;">
+1918700
+</td>
+<td style="text-align:right;">
+1947600
+</td>
+<td style="text-align:right;">
+1951300
+</td>
+<td style="text-align:right;">
+1932800
+</td>
+<td style="text-align:right;">
+1930400
+</td>
+<td style="text-align:right;">
+1937500
+</td>
+<td style="text-align:right;">
+1935100
+</td>
+<td style="text-align:right;">
+1915700
+</td>
+<td style="text-align:right;">
+1916500
+</td>
+<td style="text-align:right;">
+1965700
+</td>
+<td style="text-align:right;">
+2045300
+</td>
+<td style="text-align:right;">
+2109100
+</td>
+<td style="text-align:right;">
+2147000
+</td>
+<td style="text-align:right;">
+6947196
+</td>
+<td style="text-align:left;">
+Union Square, New York, NY 10003, United States
+</td>
+<td style="text-align:left;">
+Union Square
+</td>
+<td style="text-align:left;">
+Chelsea
+</td>
+<td style="text-align:left;">
+Manhattan
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:left;">
+NY
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+40.73857
+</td>
+<td style="text-align:right;">
+-73.99256
+</td>
+<td style="text-align:left;">
+Apartment
+</td>
+<td style="text-align:left;">
+Entire home/apt
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+800
+</td>
+<td style="text-align:left;">
+$4,900.00
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1961867
+</td>
+<td style="text-align:right;">
+219000.0
+</td>
+<td style="text-align:right;">
+86004.84
+</td>
+<td style="text-align:right;">
+8.958295
+</td>
+<td style="text-align:right;">
+32.29039
+</td>
+<td style="text-align:right;">
+3348
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+10003
+</td>
+<td style="text-align:right;">
+61617
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+1932200
+</td>
+<td style="text-align:right;">
+1936700
+</td>
+<td style="text-align:right;">
+1945200
+</td>
+<td style="text-align:right;">
+1935600
+</td>
+<td style="text-align:right;">
+1911200
+</td>
+<td style="text-align:right;">
+1918700
+</td>
+<td style="text-align:right;">
+1947600
+</td>
+<td style="text-align:right;">
+1951300
+</td>
+<td style="text-align:right;">
+1932800
+</td>
+<td style="text-align:right;">
+1930400
+</td>
+<td style="text-align:right;">
+1937500
+</td>
+<td style="text-align:right;">
+1935100
+</td>
+<td style="text-align:right;">
+1915700
+</td>
+<td style="text-align:right;">
+1916500
+</td>
+<td style="text-align:right;">
+1965700
+</td>
+<td style="text-align:right;">
+2045300
+</td>
+<td style="text-align:right;">
+2109100
+</td>
+<td style="text-align:right;">
+2147000
+</td>
+<td style="text-align:right;">
+14879273
+</td>
+<td style="text-align:left;">
+Union Square, New York, NY 10003, United States
+</td>
+<td style="text-align:left;">
+Union Square
+</td>
+<td style="text-align:left;">
+Chelsea
+</td>
+<td style="text-align:left;">
+Manhattan
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:left;">
+NY
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+40.73605
+</td>
+<td style="text-align:right;">
+-73.99203
+</td>
+<td style="text-align:left;">
+Condominium
+</td>
+<td style="text-align:left;">
+Entire home/apt
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+878
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+30
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+90
+</td>
+<td style="text-align:right;">
+90
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1961867
+</td>
+<td style="text-align:right;">
+240352.5
+</td>
+<td style="text-align:right;">
+86004.84
+</td>
+<td style="text-align:right;">
+8.162456
+</td>
+<td style="text-align:right;">
+32.29039
+</td>
+<td style="text-align:right;">
+3348
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+10003
+</td>
+<td style="text-align:right;">
+61617
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+1932200
+</td>
+<td style="text-align:right;">
+1936700
+</td>
+<td style="text-align:right;">
+1945200
+</td>
+<td style="text-align:right;">
+1935600
+</td>
+<td style="text-align:right;">
+1911200
+</td>
+<td style="text-align:right;">
+1918700
+</td>
+<td style="text-align:right;">
+1947600
+</td>
+<td style="text-align:right;">
+1951300
+</td>
+<td style="text-align:right;">
+1932800
+</td>
+<td style="text-align:right;">
+1930400
+</td>
+<td style="text-align:right;">
+1937500
+</td>
+<td style="text-align:right;">
+1935100
+</td>
+<td style="text-align:right;">
+1915700
+</td>
+<td style="text-align:right;">
+1916500
+</td>
+<td style="text-align:right;">
+1965700
+</td>
+<td style="text-align:right;">
+2045300
+</td>
+<td style="text-align:right;">
+2109100
+</td>
+<td style="text-align:right;">
+2147000
+</td>
+<td style="text-align:right;">
+16267895
+</td>
+<td style="text-align:left;">
+Union Square, New York, NY 10003, United States
+</td>
+<td style="text-align:left;">
+Union Square
+</td>
+<td style="text-align:left;">
+Chelsea
+</td>
+<td style="text-align:left;">
+Manhattan
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:left;">
+NY
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+40.73701
+</td>
+<td style="text-align:right;">
+-73.99150
+</td>
+<td style="text-align:left;">
+Apartment
+</td>
+<td style="text-align:left;">
+Entire home/apt
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+499
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+1961867
+</td>
+<td style="text-align:right;">
+136601.2
+</td>
+<td style="text-align:right;">
+86004.84
+</td>
+<td style="text-align:right;">
+14.361996
+</td>
+<td style="text-align:right;">
+32.29039
+</td>
+<td style="text-align:right;">
+3348
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+10003
+</td>
+<td style="text-align:right;">
+61617
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+1932200
+</td>
+<td style="text-align:right;">
+1936700
+</td>
+<td style="text-align:right;">
+1945200
+</td>
+<td style="text-align:right;">
+1935600
+</td>
+<td style="text-align:right;">
+1911200
+</td>
+<td style="text-align:right;">
+1918700
+</td>
+<td style="text-align:right;">
+1947600
+</td>
+<td style="text-align:right;">
+1951300
+</td>
+<td style="text-align:right;">
+1932800
+</td>
+<td style="text-align:right;">
+1930400
+</td>
+<td style="text-align:right;">
+1937500
+</td>
+<td style="text-align:right;">
+1935100
+</td>
+<td style="text-align:right;">
+1915700
+</td>
+<td style="text-align:right;">
+1916500
+</td>
+<td style="text-align:right;">
+1965700
+</td>
+<td style="text-align:right;">
+2045300
+</td>
+<td style="text-align:right;">
+2109100
+</td>
+<td style="text-align:right;">
+2147000
+</td>
+<td style="text-align:right;">
+13561752
+</td>
+<td style="text-align:left;">
+East Village, New York, NY 10003, United States
+</td>
+<td style="text-align:left;">
+East Village
+</td>
+<td style="text-align:left;">
+East Village
+</td>
+<td style="text-align:left;">
+Manhattan
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:left;">
+NY
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+40.73064
+</td>
+<td style="text-align:right;">
+-73.98608
+</td>
+<td style="text-align:left;">
+Apartment
+</td>
+<td style="text-align:left;">
+Entire home/apt
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+450
+</td>
+<td style="text-align:left;">
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+26
+</td>
+<td style="text-align:right;">
+56
+</td>
+<td style="text-align:right;">
+331
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+1961867
+</td>
+<td style="text-align:right;">
+123187.5
+</td>
+<td style="text-align:right;">
+86004.84
+</td>
+<td style="text-align:right;">
+15.925858
+</td>
+<td style="text-align:right;">
+32.29039
+</td>
+<td style="text-align:right;">
+3348
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+10003
+</td>
+<td style="text-align:right;">
+61617
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+1932200
+</td>
+<td style="text-align:right;">
+1936700
+</td>
+<td style="text-align:right;">
+1945200
+</td>
+<td style="text-align:right;">
+1935600
+</td>
+<td style="text-align:right;">
+1911200
+</td>
+<td style="text-align:right;">
+1918700
+</td>
+<td style="text-align:right;">
+1947600
+</td>
+<td style="text-align:right;">
+1951300
+</td>
+<td style="text-align:right;">
+1932800
+</td>
+<td style="text-align:right;">
+1930400
+</td>
+<td style="text-align:right;">
+1937500
+</td>
+<td style="text-align:right;">
+1935100
+</td>
+<td style="text-align:right;">
+1915700
+</td>
+<td style="text-align:right;">
+1916500
+</td>
+<td style="text-align:right;">
+1965700
+</td>
+<td style="text-align:right;">
+2045300
+</td>
+<td style="text-align:right;">
+2109100
+</td>
+<td style="text-align:right;">
+2147000
+</td>
+<td style="text-align:right;">
+7664343
+</td>
+<td style="text-align:left;">
+East Village, New York, NY 10003, United States
+</td>
+<td style="text-align:left;">
+East Village
+</td>
+<td style="text-align:left;">
+East Village
+</td>
+<td style="text-align:left;">
+Manhattan
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:left;">
+NY
+</td>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:right;">
+40.72399
+</td>
+<td style="text-align:right;">
+-73.98869
+</td>
+<td style="text-align:left;">
+Apartment
+</td>
+<td style="text-align:left;">
+Entire home/apt
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+180
+</td>
+<td style="text-align:left;">
+$1,000.00
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+1961867
+</td>
+<td style="text-align:right;">
+49275.0
+</td>
+<td style="text-align:right;">
+86004.84
+</td>
+<td style="text-align:right;">
+39.814646
+</td>
+<td style="text-align:right;">
+32.29039
+</td>
+<td style="text-align:right;">
+3348
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<pre class="r"><code>dim(final_dt)</code></pre>
+<pre><code>## [1] 1238   49</code></pre>
+<ul>
+<li>Our final dataset has <strong>1238</strong> observations and <strong>49</strong> variables.</li>
+</ul>
+</div>
+<div id="exploratory-data-analysis" class="section level3">
+<h3>Exploratory Data Analysis</h3>
+<div id="number-of-properties-in-all-zipcodes" class="section level4">
+<h4>Number of properties in all zipcodes</h4>
+<p>Now that we have our final dataset ready to work with, lets start with looking how many properties we have in each of the zipcode in NYC area.</p>
+<pre class="r"><code>ggplot(final_dt,aes(x=zipcode,fill=neighbourhood_group_cleansed))+
+  geom_bar() + 
+  ggtitle(&quot;Number of properties by Zipcode and Neighbourhood&quot;)+
+  ylab(&quot;Number of Properties&quot;) +
+  geom_text(stat=&#39;count&#39;,aes(label=..count..),vjust=-1) +
+  theme(text = element_text(size= 15),legend.position=&quot;bottom&quot;,axis.text.x = element_text(angle=45,hjust=1))</code></pre>
+<p><img src="c1_challenge_files/figure-html/unnamed-chunk-7-1.png" width="1152" /></p>
+<ul>
+<li>In above plot, we can see that <code>Manhatten</code> has the most zipcodes while <code>Staten Island</code> and <code>Brooklyn</code> have about the same number of zipcodes and <code>Manhatten</code> and <code>Brooklyn</code> neighbourhoods have higher number of the properties and <code>Staten Island</code> and <code>Queens</code> have far fewer properties.</li>
+<li>Another observation is zipcodes <strong>10003</strong> and <strong>11215</strong> have higher number of properties compared to rest of the zipcodes.</li>
+<li>On the contrary, zipcodes <strong>10308</strong>, <strong>10312</strong>,<strong>10304</strong> and <strong>11234</strong> have very few number of properties. These are mainly located in <code>Staten Island</code>, <code>Queens</code> and one in <code>Brooklyn</code>.</li>
+</ul>
+</div>
+<div id="price-per-night-anaysis-for-all-zipcodes" class="section level4">
+<h4>Price per night anaysis for all zipcodes</h4>
+<pre class="r"><code>ggplot(final_dt, aes(x=neighbourhood_group_cleansed,y=price,fill=neighbourhood_group_cleansed))+
+  geom_boxplot()+
+  ggtitle(&quot;Price/night by neighbourhood&quot;)+
+  xlab(&quot;neighbourhoods&quot;) +
+  theme(text = element_text(size= 15), legend.position=&quot;none&quot;)</code></pre>
+<p><img src="c1_challenge_files/figure-html/unnamed-chunk-8-1.png" width="1152" /></p>
+<pre class="r"><code>ggplot(final_dt, aes(x=zipcode,y=price,fill=neighbourhood_group_cleansed))+
+  geom_boxplot()+
+  ggtitle(&quot;Price/night by zipcode&quot;)+
+  theme(text = element_text(size= 15),legend.position=&quot;bottom&quot;,axis.text.x = element_text(angle=45,hjust=1))+
+  scale_y_continuous(labels = scales::comma)</code></pre>
+<p><img src="c1_challenge_files/figure-html/unnamed-chunk-8-2.png" width="1152" /></p>
+<ul>
+<li>From the above plots, we see that the mean property price/night in the neighbourhoods of <code>Queens</code> and <code>Staten Island</code> are roughly the same with <code>Brooklyn</code> being a little bit higher.</li>
+<li>The <code>Manhatten</code> on the other hand have higher mean price. Here prices are exceptionally higher compared to rest of the NYC neighbourhoods(this could be considered as outliers). These properties could be removed from the dataset as these will sway the property price from rest of the neighbourhoods however we did not remove any observations.</li>
+<li>In addition to that <code>airbnb</code> property owner may have biased pricing simply due to the fact of the location of the property. for example in <code>Manhatten</code>, there is a huge variation in price with some exceptionally higher price/night.</li>
+<li>From the second boxplot, it can be seen that per night price in the zipcode <strong>10036</strong> and <strong>10003</strong> are highest. These zipcodes are in<code>Manhatten</code>.</li>
+<li>There are many properties in <code>Manhatten</code> area that have high asking price/night which makes <code>Manhatten</code> more expensive compare to rest if the NYC neighbourhoods.</li>
+<li>We can also infer a cut off range for price and remove any properties that has higher than threshold price.</li>
+</ul>
+</div>
+<div id="revenue-and-cost-price-analysis" class="section level4">
+<h4>Revenue and Cost price analysis</h4>
+<ul>
+<li>Lets first see the median cost of properties in each of the zipcodes. We have calculated the Mean propery value based on past 18 months of property price. We can clearly see in below plot that the property cost in <code>Manhatten</code> neighbourhood are much higher than other neighbourhoods in NYC area.</li>
+<li>In below chart the size of dot is proportional with mean property price grouped by neighbourhoods.</li>
+</ul>
+<pre class="r"><code>ggplot(final_dt,aes(x=zipcode,y=Mean_Prop_value,colour = factor(neighbourhood_group_cleansed)))+
+  geom_point(aes(size=Mean_Prop_value))+
+  ggtitle(&quot;Mean Property Value by Zipcodes and Neighbourhood&quot;)+
+  ylab(&quot;Mean Property Cost&quot;)+
+  theme(text = element_text(size= 15),axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 20, face = &quot;bold&quot;),legend.text = element_text(size= 20))+
+  scale_y_continuous(labels = scales::comma)</code></pre>
+<p><img src="c1_challenge_files/figure-html/unnamed-chunk-9-1.png" width="1440" /></p>
+<ul>
+<li>Now lets plot the yearly revenue from the properties and compare it with cost of properties in same zipcode.</li>
+</ul>
+<pre class="r"><code>ggplot(final_dt,aes(x=Yearly_Prop_Revenue,y=zipcode,colour = factor(neighbourhood_group_cleansed))) +
+  geom_point(aes(size=Yearly_Prop_Revenue))+
+  ggtitle(&quot;Yearly Revenue by zipcode and Neighbourhood&quot;)+
+  xlab(&quot;Yearly Revenue&quot;) +
+  theme(text = element_text(size= 15),axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 20, face = &quot;bold&quot;),legend.text = element_text(size= 20))+
+  scale_x_continuous(labels = scales::comma)+
+  coord_flip()</code></pre>
+<p><img src="c1_challenge_files/figure-html/unnamed-chunk-10-1.png" width="1440" /></p>
+<ul>
+<li>Comparing Mean Property Value to Mean Yearly Revenue to determine the Return On investment. We will look at the pattern on how much mean property value compares to mean yearly revenue. This will help us better understand how long it will take to get positive net income from our investment.</li>
+</ul>
+<pre class="r"><code>final_dt_mean_rev &lt;- final_dt %&gt;%
+  select(zipcode,Mean_Yearly_Prop_Revenue,neighbourhood_group_cleansed)%&gt;%
+  distinct
+
+final_dt_mean_cost &lt;- final_dt %&gt;%
+  select(zipcode,Mean_Prop_value,neighbourhood_group_cleansed)%&gt;%
+  distinct
+
+mpc &lt;- ggplot(final_dt_mean_cost,aes(x=zipcode,y=Mean_Prop_value,fill=neighbourhood_group_cleansed))+
+  geom_bar(stat=&#39;identity&#39;)+
+  ggtitle(&quot;Mean Property Value by neighbourhood &amp; zipcode&quot;)+
+  ylab(&quot;Mean Property Cost&quot;)+
+  theme(text = element_text(size= 15),legend.position=&quot;none&quot;,axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 20, face = &quot;bold&quot;),legend.text = element_text(size= 20))+
+  scale_y_continuous(labels = scales::comma)+
+  coord_flip()
+
+myr &lt;- ggplot(final_dt_mean_rev,aes(x=zipcode,y=Mean_Yearly_Prop_Revenue,fill=neighbourhood_group_cleansed))+
+  geom_bar(stat=&#39;identity&#39;)+
+  ggtitle(&quot;Mean Yearly Revenue&quot;)+
+  ylab(&quot;Mean Property Revenue&quot;)+
+  xlab(&quot;&quot;)+
+  theme(text = element_text(size= 15),axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 20, face = &quot;bold&quot;),legend.text = element_text(size= 20))+
+  scale_y_continuous(labels = scales::comma)+
+  coord_flip()
+
+myr</code></pre>
+<p><img src="c1_challenge_files/figure-html/unnamed-chunk-11-1.png" width="1440" /></p>
+<pre class="r"><code>ggarrange(mpc,myr,ncol=2,nrow=1)</code></pre>
+<p><img src="c1_challenge_files/figure-html/unnamed-chunk-11-2.png" width="1440" /></p>
+<ul>
+<li>From the above plots we see that <code>Mean property cost</code> is higher in <code>Manhatten</code> but so is <code>Mean property revenue</code>.</li>
+<li>The properties in <code>Staten Island</code> have low <code>Mean property cost</code> and relatively healthy <code>Mean revenue</code>. Hence this might be a good choice for short term.</li>
+<li>Next, we will see <code>Breakeven Period</code> analysis to determine exactly how the ROI will look like based on above information.</li>
+</ul>
+</div>
+<div id="breakeven-period-and-roi-analysis" class="section level4">
+<h4>Breakeven Period and ROI Analysis</h4>
+<ul>
+<li>From below plot, it can be seen that breakeven period in <code>Manhatten</code> neighbourhood is highest followed by <code>Brooklyn</code> and <code>Staten Isand</code>. We will also plot the return ratio to choose zipcodes wisely for investment. The zipcodes wih low breakeven period and high return ration will be favourable choices.</li>
+</ul>
+<pre class="r"><code>final_dt_mean_BEP &lt;- final_dt %&gt;%
+  select(zipcode,Mean_Breakeven_Period,neighbourhood_group_cleansed)%&gt;%
+  distinct
+
+
+ ggplot(final_dt_mean_BEP,aes(x=zipcode,y=Mean_Breakeven_Period,fill=neighbourhood_group_cleansed))+
+  geom_bar(stat=&#39;identity&#39;)+
+  geom_text(aes(label=sprintf(&quot;%0.2f&quot;, round(Mean_Breakeven_Period, digits = 2))), position=position_dodge(width=0.9),      vjust=-0.25)+
+  ggtitle(&quot;Breakeven Period by zipcode&quot;)+
+  ylab(&quot;Mean Breakeven Period (In years)&quot;)+
+  theme(text = element_text(size= 10),legend.position=&quot;bottom&quot;,axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 15, face = &quot;bold&quot;),legend.text = element_text(size= 10))+
+  scale_y_continuous(labels = scales::comma)</code></pre>
+<p><img src="c1_challenge_files/figure-html/unnamed-chunk-12-1.png" width="960" /></p>
+<pre class="r"><code>  ggplot(final_dt_mean_BEP,aes(x=zipcode,y=1/Mean_Breakeven_Period,fill=neighbourhood_group_cleansed))+
+  geom_bar(stat=&#39;identity&#39;)+
+  geom_text(aes(label=sprintf(&quot;%0.2f&quot;, round(1/Mean_Breakeven_Period, digits = 2))), position=position_dodge(width=0.9), vjust=-0.25)+
+  ggtitle(&quot;Return Ratio by zipcode&quot;)+
+  ylab(&quot;Return Ratio&quot;)+
+  theme(text = element_text(size= 10),legend.position=&quot;bottom&quot;,axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 15, face = &quot;bold&quot;),legend.text = element_text(size= 10))+
+  scale_y_continuous(labels = scales::comma)</code></pre>
+<p><img src="c1_challenge_files/figure-html/unnamed-chunk-12-2.png" width="960" /></p>
+<ul>
+<li>But before we reach any conclusion and made any recommandations, lets take a look at if <code>Breakeven Period</code> and <code>Return ratio</code> are aligned with user’s perpective as well. This will bolster our confidense to invest in these neighbourhoods and zipcodes.</li>
+<li>To see this we will plot Price/night vs reviews and see if number of reviews indeed are related to and does have effect on price. - We see that many properties received high score value from below. We have only included properties where score value is not missing.</li>
+</ul>
+<pre class="r"><code>ggplot(subset(final_dt,!is.na(review_scores_value)),aes(x=as.factor(review_scores_value),y=price,colour=zipcode))+
+  geom_point(aes(size=price))+
+  xlab(&quot;Review score value&quot;)+
+  ylab(&quot;Price/night&quot;)+
+  ggtitle(&quot;Number of reviews vs price by zipcode&quot;)+
+  theme(text = element_text(size= 15))+
+  theme(plot.title = element_text(size = 20, face = &quot;bold&quot;),legend.text = element_text(size= 15))</code></pre>
+<p><img src="c1_challenge_files/figure-html/unnamed-chunk-13-1.png" width="1152" /></p>
+<pre class="r"><code>final_dt_total_reviwes &lt;- final_dt %&gt;%
+  select(zipcode,Total_Reviews,neighbourhood_group_cleansed)%&gt;%
+  distinct
+
+ggplot(final_dt_total_reviwes,aes(x=zipcode,y=Total_Reviews,fill=neighbourhood_group_cleansed))+
+  geom_bar(stat=&quot;identity&quot;)+
+  ggtitle(&quot;Total Number of property reviews by zipcode&quot;)+
+  geom_text(aes(label=Total_Reviews),position=position_dodge(width=0.9), vjust=-0.25)+
+  theme(text = element_text(size= 10),legend.position=&quot;bottom&quot;,axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 15, face = &quot;bold&quot;),legend.text = element_text(size= 10))</code></pre>
+<p><img src="c1_challenge_files/figure-html/unnamed-chunk-13-2.png" width="1152" /></p>
+<ul>
+<li>The above plot supports our assumption that if the properties in zipcode have higher number of reviews then it attracts more price/night.</li>
+<li>Previously we concluded that properties in <code>Staten Island</code> have lower breakeven period and are good for short term investment, we can see that properties in the <code>Staten Island</code> zipcodes tend to receive higher score value.</li>
+<li>There are properties that does not have score and are missing and are not considered here. In data cleaning section of this analysis, we concluded that it is difficult to impute this values without more information.</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="final-analysis-highlights" class="section level2">
+<h2>Final Analysis highlights</h2>
+<ul>
+<li>Data doesn’t always come easy and clean for us to work on to perform analysis. In this exercise, we were given two datasets where one is <code>zillow</code> dataset which contained information related to cost of properties and other is <code>airbnb</code> dataset that has information on revenue.</li>
+<li>Since these datasets contained data that was not necessarily related to determining our objective, we needed to make some adjustment by creating some new variables that we thought would be useful, performed some data cleaning by removing extra variables and imputing others into appropriate datatypes for effective analysis.</li>
+</ul>
+</div>
+<div id="conclusion-and-discussions" class="section level2">
+<h2>Conclusion and Discussions</h2>
+<p>Below are some of the findings from this analysis and conclusions</p>
+<ul>
+<li>In the beginning of analysis, we saw that <code>Manhatten</code> and <code>Brooklyn</code> have higher number of zipcodes and therefore have higher number of properties overall.</li>
+<li>We also saw that <code>Manhatten</code> has largest variation in price/night and higher mean price/night while <code>Queens</code> and <code>Staten Island</code> have about the same statistics.</li>
+<li>Properties in <code>Staten Island</code> and <code>Queens</code> seems to have better ROI based on <code>Breakeven Period</code> and <code>Return ratio</code>. Especially zipcodes <strong>10312</strong>, <strong>10304</strong> and <strong>11434</strong> seems like a good candidaate based on cost and return ratio but lack of reviews/insufifcient number of reviews makes it a risky investment.</li>
+<li><strong>11234</strong> is also appear to be a good option in terms of return ratio and breakeven period but fewer reviews with low review score value makes it risky.</li>
+<li>Zipcodes in <code>Manhatten</code> draws much higher price/night but it also has high breakeven period and average to lower return ratio which makes it not a good candidate neighbourhood. Though there are some zipcodes that do have significant return ratio making it a good choice. These are mentioned in recommandation sections below.</li>
+<li>Property cost seems to be positively correlated to price/night i.e. higher the cost of property higher the price/night value.</li>
+<li>On Average properties in <code>Staten Island</code> have highest return ratio and lowest mean cost making it most profitable potential neighbourhood.</li>
+<li>Properties in <code>Brooklyn</code> have average cost and returan ratio along with average breakeven perid. These properties falls in the middle on spectrum on every KPI we measured.</li>
+</ul>
+</div>
+<div id="recommandations" class="section level2">
+<h2>Recommandations</h2>
+<ul>
+<li><strong>Category 1 Candidates:</strong> We are going to call these <code>high potential</code> candidates. Zipcodes <strong>10306</strong>, <strong>10036</strong>, <strong>10025</strong>, <strong>11215</strong> and <strong>11231</strong> are recommanded for investment. The low breakeven period, high return ratio coupled with good number of reviews and healhty review score value make these lucrative investment candidates.</li>
+<li><strong>Category 2 candidates:</strong> These will be <code>Moderate potential</code> candidates. A bit risky compare to Category 1 but good review score value makes zipcode <strong>11201</strong> and <strong>11434</strong> a potential good choice for investment provided company want to take some risk and do not have budget contraints. The only downside for zipcode is fewer number of reviews(for zipcode <strong>11434</strong>). The return ratio and breakeven period are solid.</li>
+</ul>
+</div>
+<div id="future-actions" class="section level2">
+<h2>Future Actions</h2>
+<ul>
+<li>We can further take look at the property type attributes and its cost to determine which type of properties can be most cost effective in terms of ROI.</li>
+<li>We can also consider the popular properties by looking at its availability. This will give us sense on how likely these properties will be occupied. The less availability means more accupancy which in turn means faster ROI.</li>
+<li>This entire analysis was based on assuption on fixed occupancy rate. Occupancy rate could have a significant impact on all major KPI’s used in this analysis based on which we have made our decision. Naturally properties in the zipcodes that are closer to major tourist attractions, have good transpostation options and surrounding environment tedn to have higher occupancy rates. A true occupancy rate would be a crucial addition for future analysis.</li>
+<li>We didn’t do much with availability data in the dataset. The dataset contained informatin on next 30, 60, 90 and 365 days availability of property, the company can capitalize this information and vary the price to generate more profit.</li>
+<li>The seasonality and trend data would also be a helpful factor calculating revenue.</li>
+<li>There is a need to dig more about zipcode <strong>10302</strong> which has the highest return ratio and lowest breakeven period among all zipcodes. The mean cost is lower too. These facts makes it the probably the best zipcode to invest in <strong>but</strong> we have decided not to put this in category 1 candidates of zipcodes simply because there is ony one property that too without any reviews. So some additional information regarding the property and zipcode would be useful to determine and making decision on investment.</li>
+<li>We can also utilize information based on text data provided in the dataset like user reviews to identify property attributes before making investment.</li>
+<li>Segmentation is another approach that we can take to identify which zipcodes and specific properties can be good investment options. Here it ws avoided due to time constraint.</li>
+</ul>
+</div>
+<div id="acknowledgements" class="section level2">
+<h2>Acknowledgements</h2>
+<ul>
+<li>Breakeven period - <a href="https://study.com/academy/lesson/how-to-calculate-the-break-even-point-definition-formula.html" class="uri">https://study.com/academy/lesson/how-to-calculate-the-break-even-point-definition-formula.html</a></li>
+</ul>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

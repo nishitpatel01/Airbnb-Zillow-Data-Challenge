@@ -1,0 +1,522 @@
+---
+title: "AirBnB & Zillow Data Challenge"
+author: "Nishit Patel"
+date: "February 9, 2019"
+output:
+  html_document:
+    self_contained: no
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Overview and Problem Statement
+
+  - You are consulting for a real estate company that has a niche in purchasing properties to rent out short-term as part of their business model specifically within New York City.  The real estate company has already concluded that two bedroom properties are the most profitable; however, they do not know which zip codes are the best to invest in.    
+
+  - The real estate company has engaged your firm to build out a data product and provide your conclusions to help them understand which zip codes would generate the most profit on short term rentals within New York City.
+
+## Exercise Assumptions 
+  - The dataset for this exercise are available through `AirBnB` (Revenue related data) and `Zillow` (Cost related data).
+  - The Occupancy rate is constant and assumed of 75% therefore we are not considering effects of seasonality and trend.
+  -	The investor will pay for the property in cash (i.e. no mortgage/interest rate will need to be accounted for).
+  -	The time value of money discount rate is 0% (i.e. $1 today is worth the same 100 years from now).
+  - All properties and all square feet within each locale can be assumed to be homogeneous (i.e. a 1000 square foot property in a locale such as Bronx or Manhattan generates twice the revenue and costs twice as much as any other 500 square foot property within that same locale.)
+  
+## Methods
+### Dataset Description
+
+  - Zillow Median Home Value Dataset: This datset contains information on median home price on different cities in the nation. It includes columns such as RegionID, Zipcode, City, State, County Name, Area population rank and median price in time series format starting from April 1996 to June 2017 where columsn are the time period and values the median price of the home. The datset size is 13.5MB and contains **8,946** observations and **262** variables. 
+  - AirBnB Detailed Listing Dataset: This dataset contains information related to property within New York City area. There are many features related to each property such as property type, zipcode, transit options etc. The dataset size is 147MB (unzipped)and contains **40,753** observations and **95** variables.
+  
+### Libraries and Packages 
+  Below packages were used in this analysis:
+
+  - **dplyr**: Data manipulation and wrangling
+  - **data.table**: Data reading and manipulations
+  - **ggplot2**: Visualization and plots
+  - **ggpubr** - Visulization and plots
+  - **kableExtra** - Table Styling
+  
+```{r message=FALSE, warning=FALSE}
+#load necessary pckages
+mypackages <- c("dplyr","data.table","ggplot2","ggpubr","kableExtra")   
+pkg <- setdiff(mypackages, rownames(installed.packages())) 
+if (length(pkg) > 0) install.packages(pkg)
+
+library(dplyr)
+library(data.table)
+library(ggplot2)
+library(ggpubr)
+library(kableExtra)
+```
+
+### Data Loading 
+
+- Lets first import and take a peak with few rows from both datasets.
+
+```{r warning=FALSE}
+#disable scientic notations for plots
+options(scipen=10000)
+
+#read data 
+zillow_dt <- fread("Zip_Zhvi_2bedroom.csv")
+airbnb_dt <- fread("listings.csv")
+
+#check dataset dimensions
+dim(zillow_dt)
+dim(airbnb_dt)
+
+#print dataset sample rows 
+kable(zillow_dt[1:5,],format = 'html',col.names = colnames(zillow_dt),caption = "Zillow (Cost) dataset") %>%
+  kable_styling(bootstrap_options = "striped") %>%
+  scroll_box(width="100%")
+
+kable(airbnb_dt[1:2,],format = 'html',col.names = colnames(airbnb_dt),caption = "Airbnb (Revenue) dataset") %>%
+  kable_styling(bootstrap_options = "striped") %>%
+  scroll_box(width="100%")
+```
+
+### Data Cleaning
+
+ - Based on observations on these two datasets, it appears that both datasets have many variables that may not be useful for our analysis, it makes sense to remove them using some common sense approach and will keep only those variables that could be helpful.
+ - We will look for common data quality issues here for example missing values, duplicate rows, appropriate data type formats etc and finally produce clean dataset.
+ - We will first start by merging these two datsets using the column `zipcode` from airbnb and `RegionName` from zillow dataset.
+ - Since company has already concluded that two bedrooms properties are most profitable, we will apply this filter on our merged dataset.
+ - Another assumption made in the problem statement and instructions that time value of money discount rate is 0% i.e. the value of currency in the future will be same as today. Keeping this in mind, we have given property rate starting from May 1996 till June 2017. The rates from past will not make any difference therefore there is no need to keep these in this analysis. We will keep data from last 18 months from June 2017 and will drop variables that are older than 18 months back from June 2017.
+ - At last, variables that are not relevant for this analysis will be removed from the datset to prepare final and clean dataset to work with.
+
+ 
+```{r warning=FALSE}
+#first convert zipcode to interger type
+airbnb_dt$zipcode <- as.integer(airbnb_dt$zipcode)
+
+#merge both dataset using zipcode 
+merged_dt <- merge(zillow_dt,airbnb_dt,by.x="RegionName",by.y="zipcode")
+
+#filter datase based on 2 bedrooms
+merged_dt <- merged_dt %>%
+                     filter(bedrooms == 2)
+
+#remove time series variables older than 18 months from June 2017 i.e. keep only from Jan 2016 - June 2017
+merged_dt <- merged_dt[,-c(8:244)]
+
+#now lets remove the column that are not relevant to this analysis
+vars_to_drop <- c(
+                  "City",
+                  "State",
+                  "Metro",
+                  "listing_url",
+                  "scrape_id",
+                  "last_scraped",
+                  "experiences_offered",
+                  "neighborhood_overview",
+                  "notes","transit",
+                  "access",
+                  "interaction",
+                  "house_rules",
+                  "thumbnail_url",
+                  "medium_url",
+                  "picture_url",
+                  "xl_picture_url",
+                  "host_id",
+                  "host_url",
+                  "host_name",
+                  "host_since",
+                  "host_location",
+                  "host_about",
+                  "host_response_time",
+                  "host_response_rate",
+                  "host_acceptance_rate",
+                  "host_is_superhost",
+                  "host_thumbnail_url",
+                  "host_picture_url",
+                  "host_neighbourhood",
+                  "host_listings_count",
+                  "host_total_listings_count",
+                  "host_verifications",
+                  "host_has_profile_pic",      
+                  "host_identity_verified",
+                  "smart_location",
+                  "country_code",
+                  "country",
+                  "name",
+                  "summary",
+                  "is_location_exact",
+                  "bedrooms",
+                  "beds",
+                  "bed_type",
+                  "monthly_price",
+                  "amenities",
+                  "security_deposit",
+                  "cleaning_fee",
+                  "extra_people",
+                  "minimum_nights",
+                  "maximum_nights",
+                  "calendar_updated",
+                  "has_availability",
+                  "calendar_last_scraped",
+                  "first_review",
+                  "space",
+                  "last_review",
+                  "requires_license",
+                  "license",
+                  "jurisdiction_names",
+                  "instant_bookable",                       
+                  "require_guest_profile_picture",
+                  "require_guest_phone_verification",
+                  "description",                                     
+                  "calculated_host_listings_count",
+                  "cancellation_policy",
+                  "accomodates",
+                  "bathrooms",
+                  "square_feet",
+                  "guests_included",
+                  "review_scores_accuracy",
+                  "review_scores_cleanliness",
+                  "review_scores_checkin",
+                  "review_scores_communication",
+                  "review_scores_rating",
+                  "review_scores_location",
+                  "reviews_per_month"
+                ) 
+
+merged_dt <- merged_dt[,!(colnames(merged_dt) %in% vars_to_drop)]
+```
+
+The final dataset contains following columns 
+
+From zillow dataset
+
+  - RegionID
+  - RegionName
+  - CountyName
+  - SizeRank
+  - Time Label variables from "2016-01" to "2017-06" (18 months time period)
+  
+From airbnb dataset
+
+  - id
+  - street
+  - neighbourhood
+  - neighbourhood_cleansed
+  - neighbourhood_group_cleansed
+  - city
+  - state
+  - zipcode
+  - latitude
+  - longitude
+  - property_type
+  - room_type
+  - price
+  - weekly_price
+  - availability_30
+  - availability_60
+  - availability_90
+  - availability_365
+  - number_of_reviews
+  
+Now we have our dataset that we want to work with and based on quality of this data, we will make following changes in the dataset
+
+- We will start by checking missing data for each variable. 
+- We will remove any property listings that are outside NYC area.
+- price
+    - We may remove the observations where there is no `price` or 0 `price`. We will also make sure that `price` is not less than 0. 
+    - Convert price variable to proper format (an integer). Currently it is in character form.
+    - Remove `$` sign from the price variable.
+- RegionName
+    - Rename `RegionName` variable to `zipcode`.
+    - Make sure that length of `zipcode` is 5 digits.
+    - convert this variable to factor type
+- number_of_reviews
+    - Replace any `NA` values with `0` for `number_of_reviews` variable
+    
+
+```{r}
+#check for missing values in any variables in the dataset
+colnames(merged_dt)[apply(is.na(merged_dt), 2, any)]
+
+#check price variable 
+neg_count <- sapply(merged_dt, function(x) sum(length(which(x < 0))))
+nrow(neg_count[which(neg_count > 0)])  
+#there are no variables with negative value
+ 
+#check datatype for price variable
+class(merged_dt$price)
+
+#since it is in character form, we need to chage it to interger
+merged_dt$price <- gsub('[$,]','',merged_dt$price)
+merged_dt$price <- as.numeric(merged_dt$price)
+
+#rename RegionName to zipcode and convert to factor
+names(merged_dt)[names(merged_dt) == 'RegionName'] <- 'zipcode'
+merged_dt$zipcode <- as.factor(merged_dt$zipcode)
+
+#replace any missing number_of_review variable with 0 
+merged_dt$number_of_reviews[is.na(merged_dt$number_of_reviews)] <- 0
+
+#is there any duplicate observation in the dataset
+merged_dt[which(duplicated(merged_dt) == TRUE),]
+
+#create final version of dataset
+final_dt <- merged_dt
+```
+
+- There were no duplicate observations present in final dataset.
+- We see that `review_scores_value` has some missing values. We can not simply impute this field. Our first approach would have been to replace missing value with  `mean` value but since this score depends on all the offerings that a host has made available to the guest, we can not simply use `mean` or value of `0`. In order to calculate true value we need to know all details about specfic offerings from host which is not available and may require manual observations of the property. 
+
+### Feature Engineering
+
+- We will now create some new features that are going to be helpful for our analysis. We will start with creating new feature named `Mean_Prop_Value` which basically is the mean price of the property for given zipcode.
+- To properly analyze the cost vs revenue amounts we need to derive new features in our dataset using the information given to us. One of the assumption was made that there will be an occupancy rate of 75% regardless of location. We will use this information to create another feature named `Yearly_Prop_Revenue`. This is basically how much revenue a given property might generate and how it compares to the cost of properties. 
+- We will also create a new variable named `Breakeven_Period` and `Mean_Breakeven_Period`. **Breakeven Period** is defined as time that net income can cover total cost. In other words how long it will take to make the cost that was made for investment.
+- At the end we wil calculate `total number of reviews` for a given zipcode. 
+
+```{r}
+#crate new column by calculating means price of the property based on last 18 months of price
+final_dt$Mean_Prop_value <- rowMeans(final_dt[,5:22],na.rm = TRUE) #mean of column from 2016-01 to 2017-06
+
+#create yearly revenue for each property
+occupancy_rate <- 0.75
+final_dt$Yearly_Prop_Revenue <- final_dt$price * occupancy_rate * 365
+
+#calculate mean revenue for each zipcode as well
+setDT(final_dt)[,Mean_Yearly_Prop_Revenue := mean(Yearly_Prop_Revenue), by=zipcode]
+
+#calculate breakeven period for ROI analysis 
+#breakeven point = cost / price 
+final_dt$Breakeven_Period <- final_dt$Mean_Prop_value / final_dt$Yearly_Prop_Revenue
+
+#breakeven point by zipcode
+setDT(final_dt)[,Mean_Breakeven_Period := mean(Breakeven_Period), by=zipcode]
+
+#total number of reviews
+setDT(final_dt)[,Total_Reviews := sum(number_of_reviews), by=zipcode]
+```
+
+After performing data cleaning operations and feature engineering, here is how our final dataset looks like
+```{r}
+kable(final_dt[1:5,],format = 'html',col.names = colnames(final_dt),caption = "Final dataset") %>%
+  kable_styling(bootstrap_options = "striped") %>%
+  scroll_box(width="100%")
+
+dim(final_dt)
+```
+
+- Our final dataset has **1238** observations and **49** variables.
+
+### Exploratory Data Analysis
+
+#### Number of properties in all zipcodes
+
+Now that we have our final dataset ready to work with, lets start with looking how many properties we have in each of the zipcode in NYC area.
+
+```{r fig.height=8, fig.width=12}
+ggplot(final_dt,aes(x=zipcode,fill=neighbourhood_group_cleansed))+
+  geom_bar() + 
+  ggtitle("Number of properties by Zipcode and Neighbourhood")+
+  ylab("Number of Properties") +
+  geom_text(stat='count',aes(label=..count..),vjust=-1) +
+  theme(text = element_text(size= 15),legend.position="bottom",axis.text.x = element_text(angle=45,hjust=1))
+```
+
+- In above plot, we can see that `Manhatten` has the most zipcodes while `Staten Island` and `Brooklyn` have about the same number of zipcodes and `Manhatten` and `Brooklyn` neighbourhoods have higher number of the properties and `Staten Island` and `Queens` have far fewer properties. 
+- Another observation is zipcodes **10003** and **11215** have higher number of properties compared to rest of the zipcodes.
+- On the contrary, zipcodes **10308**, **10312**,**10304** and **11234** have very few number of properties. These are mainly located in `Staten Island`, `Queens` and one in `Brooklyn`.
+
+
+#### Price per night anaysis for all zipcodes
+
+```{r fig.height=8, fig.width=12}
+ggplot(final_dt, aes(x=neighbourhood_group_cleansed,y=price,fill=neighbourhood_group_cleansed))+
+  geom_boxplot()+
+  ggtitle("Price/night by neighbourhood")+
+  xlab("neighbourhoods") +
+  theme(text = element_text(size= 15), legend.position="none")
+
+ggplot(final_dt, aes(x=zipcode,y=price,fill=neighbourhood_group_cleansed))+
+  geom_boxplot()+
+  ggtitle("Price/night by zipcode")+
+  theme(text = element_text(size= 15),legend.position="bottom",axis.text.x = element_text(angle=45,hjust=1))+
+  scale_y_continuous(labels = scales::comma)
+```
+
+- From the above plots, we see that the mean property price/night in the neighbourhoods of `Queens` and `Staten Island` are roughly the same with `Brooklyn` being a little bit higher. 
+- The `Manhatten` on the other hand have higher mean price. Here prices are exceptionally higher compared to rest of the NYC neighbourhoods(this could be considered as outliers). These properties could be removed from the dataset as these will sway the property price from rest of the neighbourhoods however we did not remove any observations.
+- In addition to that `airbnb` property owner may have biased pricing simply due to the fact of the location of the property. for example in `Manhatten`, there is a huge variation in price with some exceptionally higher price/night.
+- From the second boxplot, it can be seen that per night price in the zipcode **10036** and **10003** are highest. These zipcodes are in`Manhatten`. 
+- There are many properties in `Manhatten` area that have high asking price/night which makes `Manhatten` more expensive compare to rest if the NYC neighbourhoods.
+- We can also infer a cut off range for price and remove any properties that has higher than threshold price. 
+
+#### Revenue and Cost price analysis
+
+- Lets first see the median cost of properties in each of the zipcodes. We have calculated the Mean propery value based on past 18 months of property price. We can clearly see in below plot that the property cost in `Manhatten` neighbourhood are much higher than other neighbourhoods in NYC area.
+- In below chart the size of dot is proportional with mean property price grouped by neighbourhoods.
+
+```{r fig.height=8, fig.width=15}
+ggplot(final_dt,aes(x=zipcode,y=Mean_Prop_value,colour = factor(neighbourhood_group_cleansed)))+
+  geom_point(aes(size=Mean_Prop_value))+
+  ggtitle("Mean Property Value by Zipcodes and Neighbourhood")+
+  ylab("Mean Property Cost")+
+  theme(text = element_text(size= 15),axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 20, face = "bold"),legend.text = element_text(size= 20))+
+  scale_y_continuous(labels = scales::comma)
+```
+
+- Now lets plot the yearly revenue from the properties and compare it with cost of properties in same zipcode.
+
+```{r fig.height=8, fig.width=15}
+ggplot(final_dt,aes(x=Yearly_Prop_Revenue,y=zipcode,colour = factor(neighbourhood_group_cleansed))) +
+  geom_point(aes(size=Yearly_Prop_Revenue))+
+  ggtitle("Yearly Revenue by zipcode and Neighbourhood")+
+  xlab("Yearly Revenue") +
+  theme(text = element_text(size= 15),axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 20, face = "bold"),legend.text = element_text(size= 20))+
+  scale_x_continuous(labels = scales::comma)+
+  coord_flip()
+```
+
+- Comparing Mean Property Value to Mean Yearly Revenue to determine the Return On investment. We will look at the pattern on how much mean property value compares to mean yearly revenue. This will help us better understand how long it will take to get positive net income from our investment.
+
+```{r fig.height=8, fig.width=15}
+final_dt_mean_rev <- final_dt %>%
+  select(zipcode,Mean_Yearly_Prop_Revenue,neighbourhood_group_cleansed)%>%
+  distinct
+
+final_dt_mean_cost <- final_dt %>%
+  select(zipcode,Mean_Prop_value,neighbourhood_group_cleansed)%>%
+  distinct
+
+mpc <- ggplot(final_dt_mean_cost,aes(x=zipcode,y=Mean_Prop_value,fill=neighbourhood_group_cleansed))+
+  geom_bar(stat='identity')+
+  ggtitle("Mean Property Value by neighbourhood & zipcode")+
+  ylab("Mean Property Cost")+
+  theme(text = element_text(size= 15),legend.position="none",axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 20, face = "bold"),legend.text = element_text(size= 20))+
+  scale_y_continuous(labels = scales::comma)+
+  coord_flip()
+
+myr <- ggplot(final_dt_mean_rev,aes(x=zipcode,y=Mean_Yearly_Prop_Revenue,fill=neighbourhood_group_cleansed))+
+  geom_bar(stat='identity')+
+  ggtitle("Mean Yearly Revenue")+
+  ylab("Mean Property Revenue")+
+  xlab("")+
+  theme(text = element_text(size= 15),axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 20, face = "bold"),legend.text = element_text(size= 20))+
+  scale_y_continuous(labels = scales::comma)+
+  coord_flip()
+
+myr
+
+ggarrange(mpc,myr,ncol=2,nrow=1)
+
+```
+
+- From the above plots we see that `Mean property cost` is higher in `Manhatten` but so is `Mean property revenue`.
+- The properties in `Staten Island` have low `Mean property cost` and relatively healthy `Mean revenue`. Hence this might be a good choice for short term.
+- Next, we will see `Breakeven Period` analysis to determine exactly how the ROI will look like based on above information. 
+
+#### Breakeven Period and ROI Analysis
+
+- From below plot, it can be seen that breakeven period in `Manhatten` neighbourhood is highest followed by `Brooklyn` and `Staten Isand`. We will also plot the return ratio to choose zipcodes wisely for investment. The zipcodes wih low breakeven period and high return ration will be favourable choices. 
+
+```{r fig.height=8, fig.width=10}
+final_dt_mean_BEP <- final_dt %>%
+  select(zipcode,Mean_Breakeven_Period,neighbourhood_group_cleansed)%>%
+  distinct
+
+
+ ggplot(final_dt_mean_BEP,aes(x=zipcode,y=Mean_Breakeven_Period,fill=neighbourhood_group_cleansed))+
+  geom_bar(stat='identity')+
+  geom_text(aes(label=sprintf("%0.2f", round(Mean_Breakeven_Period, digits = 2))), position=position_dodge(width=0.9),      vjust=-0.25)+
+  ggtitle("Breakeven Period by zipcode")+
+  ylab("Mean Breakeven Period (In years)")+
+  theme(text = element_text(size= 10),legend.position="bottom",axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 15, face = "bold"),legend.text = element_text(size= 10))+
+  scale_y_continuous(labels = scales::comma)
+
+  ggplot(final_dt_mean_BEP,aes(x=zipcode,y=1/Mean_Breakeven_Period,fill=neighbourhood_group_cleansed))+
+  geom_bar(stat='identity')+
+  geom_text(aes(label=sprintf("%0.2f", round(1/Mean_Breakeven_Period, digits = 2))), position=position_dodge(width=0.9), vjust=-0.25)+
+  ggtitle("Return Ratio by zipcode")+
+  ylab("Return Ratio")+
+  theme(text = element_text(size= 10),legend.position="bottom",axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 15, face = "bold"),legend.text = element_text(size= 10))+
+  scale_y_continuous(labels = scales::comma)
+  
+```
+
+- But before we reach any conclusion and made any recommandations, lets take a look at if `Breakeven Period` and `Return ratio` are aligned with user's perpective as well. This will bolster our confidense to invest in these neighbourhoods and zipcodes.
+- To see this we will plot Price/night vs reviews and see if number of reviews indeed are related to and does have effect on price. - We see that many properties received high score value from below. We have only included properties where score value is not missing. 
+
+```{r fig.height=8, fig.width=12}
+ggplot(subset(final_dt,!is.na(review_scores_value)),aes(x=as.factor(review_scores_value),y=price,colour=zipcode))+
+  geom_point(aes(size=price))+
+  xlab("Review score value")+
+  ylab("Price/night")+
+  ggtitle("Number of reviews vs price by zipcode")+
+  theme(text = element_text(size= 15))+
+  theme(plot.title = element_text(size = 20, face = "bold"),legend.text = element_text(size= 15))
+
+final_dt_total_reviwes <- final_dt %>%
+  select(zipcode,Total_Reviews,neighbourhood_group_cleansed)%>%
+  distinct
+
+ggplot(final_dt_total_reviwes,aes(x=zipcode,y=Total_Reviews,fill=neighbourhood_group_cleansed))+
+  geom_bar(stat="identity")+
+  ggtitle("Total Number of property reviews by zipcode")+
+  geom_text(aes(label=Total_Reviews),position=position_dodge(width=0.9), vjust=-0.25)+
+  theme(text = element_text(size= 10),legend.position="bottom",axis.text.x = element_text(angle=45,hjust=1))+
+  theme(plot.title = element_text(size = 15, face = "bold"),legend.text = element_text(size= 10))
+```
+
+- The above plot supports our assumption that if the properties in zipcode have higher number of reviews then it attracts more price/night.
+- Previously we concluded that properties in `Staten Island` have lower breakeven period and are good for short term investment, we can see that properties in the `Staten Island` zipcodes tend to receive higher score value.
+- There are properties that does not have score and are missing and are not considered here. In data cleaning section of this analysis, we concluded that it is difficult to impute this values without more information.  
+
+## Final Analysis highlights
+
+ - Data doesn't always come easy and clean for us to work on to perform analysis. In this exercise, we were given two datasets where one is `zillow` dataset which contained information related to cost of properties and other is `airbnb` dataset that has information on revenue. 
+ - Since these datasets contained data that was not necessarily related to determining our objective, we needed to make some adjustment by creating some new variables that we thought would be useful, performed some data cleaning by removing extra variables and imputing others into appropriate datatypes for effective analysis.
+ 
+ 
+## Conclusion and Discussions
+
+Below are some of the findings from this analysis and conclusions
+ 
+ - In the beginning of analysis, we saw that `Manhatten` and `Brooklyn` have higher number of zipcodes and therefore have higher  number of properties overall.
+ - We also saw that `Manhatten` has largest variation in price/night and higher mean price/night while `Queens` and `Staten Island` have about the same statistics.
+ - Properties in `Staten Island` and `Queens` seems to have better ROI based on `Breakeven Period` and `Return ratio`. Especially zipcodes **10312**, **10304** and **11434** seems like a good candidaate based on cost and return ratio but lack of reviews/insufifcient number of reviews makes it a risky investment.
+ - **11234** is also appear to be a good option in terms of return ratio and breakeven period but fewer reviews with low review score value makes it risky.
+ - Zipcodes in `Manhatten` draws much higher price/night but it also has high breakeven period and average to lower return ratio which makes it not a good candidate neighbourhood. Though there are some zipcodes that do have significant return ratio making it a good choice. These are mentioned in recommandation sections below.
+ - Property cost seems to be positively correlated to price/night i.e. higher the cost of property higher the price/night value.
+ - On Average properties in `Staten Island` have highest return ratio and lowest mean cost making it most profitable potential neighbourhood. 
+ - Properties in `Brooklyn` have average cost and returan ratio along with average breakeven perid. These properties falls in the middle on spectrum on every KPI we measured. 
+ 
+ 
+## Recommandations
+ - **Category 1 Candidates:** We are going to call these `high potential` candidates. Zipcodes **10306**, **10036**, **10025**, 
+ **11215** and **11231** are recommanded for investment. The low breakeven period, high return ratio coupled with good number of reviews and healhty review score value make these lucrative investment candidates.
+ - **Category 2 candidates:** These will be `Moderate potential` candidates. A bit risky compare to Category 1 but good review score value makes zipcode **11201** and **11434** a potential good choice for investment provided company want to take some risk and do not have budget contraints. The only downside for zipcode is fewer number of reviews(for zipcode **11434**). The return ratio and breakeven period are solid.
+ 
+
+## Future Actions
+
+- We can further take look at the property type attributes and its cost to determine which type of properties can be most cost effective in terms of ROI.
+- We can also consider the popular properties by looking at its availability. This will give us sense on how likely these properties will be occupied. The less availability means more accupancy which in turn means faster ROI.
+- This entire analysis was based on assuption on fixed occupancy rate. Occupancy rate could have a significant impact on all major KPI's used in this analysis based on which we have made our decision. Naturally properties in the zipcodes that are closer to major tourist attractions, have good transpostation options and surrounding environment tedn to have higher occupancy rates. A true occupancy rate would be a crucial addition for future analysis.
+- We didn't do much with availability data in the dataset. The dataset contained informatin on next 30, 60, 90 and 365 days availability of property, the company can capitalize this information and vary the price to generate more profit.
+- The seasonality and trend data would also be a helpful factor calculating revenue.
+- There is a need to dig more about zipcode **10302** which has the highest return ratio and lowest breakeven period among all zipcodes. The mean cost is lower too. These facts makes it the probably the best zipcode to invest in **but** we have decided not to put this in category 1 candidates of zipcodes simply because there is ony one property that too without any reviews. So some additional information regarding the property and zipcode would be useful to determine and making decision on investment.
+- We can also utilize information based on text data provided in the dataset like user reviews to identify property attributes before making investment.
+- Segmentation is another approach that we can take to identify which zipcodes and specific properties can be good investment options. Here it ws avoided due to time constraint.
+
+
+
+## Acknowledgements 
+- Breakeven period - https://study.com/academy/lesson/how-to-calculate-the-break-even-point-definition-formula.html
+
+  
