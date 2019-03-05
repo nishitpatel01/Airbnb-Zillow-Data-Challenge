@@ -48,9 +48,11 @@ Below are the files with folder locations where you need to change extension fro
 ### Instructions to run RMD file
 
 1. The submitted code was created in R studio and is in R markdown(Rmd) format. Therefore user need to have R and R Studio installed on machine	in order to reproduce this work.
-	Use below url to install R and R studio
-	R: (https://www.r-project.org/)
-	R Studio: (https://www.rstudio.com/products/rstudio/download/)
+
+	* Use below url to install R and R studio
+		* R: (https://www.r-project.org/)
+		* R Studio: (https://www.rstudio.com/products/rstudio/download/)
+	
 2. Once R and R Studio are installed, you will need to install necessary packages that are used in this analysis. Though install commands are provided
 	in the code, sometimes R studio throws error asking to use source url for packages which is not a good idea to provide in code.
 	Below is the command to install packages for this analysis. Run below code as it is in R studio:
