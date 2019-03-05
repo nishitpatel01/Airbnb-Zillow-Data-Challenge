@@ -55,11 +55,14 @@ Below are the files with folder locations where you need to change extension fro
 	in the code, sometimes R studio throws error asking to use source url for packages which is not a good idea to provide in code.
 	Below is the command to install packages for this analysis. Run below code as it is in R studio:
 
-  install.packages("dplyr")
-  install.packages("data.table") <br/ >
+```r 
+        install.packages("dplyr")
+        install.packages("data.table")
 	install.packages("ggplot2")
 	install.packages("ggpubr")
 	install.packages("kableExtra")
+```
+
 
 3. Once above packages are installed, open the "c1_challenge.Rmd" file in R studio and click on "Knit" button on top bar.
 4. After knitting the markdown file, you can see the output in any browser or in Viewer pane in R Studio.
